@@ -230,7 +230,7 @@ function Hero() {
         {/* Text on top */}
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: '100vh', padding: '80px 28px 52px' }}>
           <p style={{ ...mono, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#b89a5e', marginBottom: 18 }}>
-            Software Engineer &amp; IT Professional
+            Software Engineer | Full-Stack Web Developer | Informatics Graduate | UI / UX Designer
           </p>
           <h1 style={{ ...serif, fontSize: 'clamp(2.8rem, 11vw, 4.5rem)', fontWeight: 700, color: 'rgba(240,235,224,0.92)', lineHeight: 1.0, letterSpacing: '-0.02em', marginBottom: 22 }}>
             Giyan<br />Radhietya<br />Akmal
@@ -253,7 +253,7 @@ function Hero() {
         <div style={{ display: 'flex', alignItems: 'center', padding: '80px 48px 80px 64px' }}>
           <div>
             <p style={{ ...mono, fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#b89a5e', marginBottom: 28 }}>
-              Software Engineer &amp; IT Professional
+              Software Engineer | Full-Stack Web Developer | Informatics Graduate | UI / UX Designer
             </p>
             <h1 style={{ ...serif, fontSize: 'clamp(3.2rem, 6.5vw, 6rem)', fontWeight: 700, color: '#f0ebe0', lineHeight: 1.0, letterSpacing: '-0.02em', marginBottom: 32 }}>
               Giyan<br />Radhietya<br />Akmal

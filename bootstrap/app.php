@@ -20,16 +20,15 @@ $app = Application::configure(basePath: dirname(__DIR__))
 if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL'])) {
     $app->useStoragePath('/tmp');
     
-    // Pastikan folder-folder yang dibutuhkan Laravel ada di /tmp
     @mkdir('/tmp/framework/views', 0777, true);
     @mkdir('/tmp/framework/sessions', 0777, true);
     @mkdir('/tmp/framework/cache/data', 0777, true);
     
-    // Override pengaturan bawaan agar sesuai dengan serverless
-    $_ENV['SESSION_DRIVER'] = 'file';
-    $_ENV['CACHE_STORE'] = 'file';
-    $_ENV['DB_CONNECTION'] = 'sqlite';
-    $_ENV['DB_DATABASE'] = '/tmp/database.sqlite';
+    putenv('SESSION_DRIVER=file');
+    putenv('CACHE_STORE=file');
+    putenv('DB_CONNECTION=sqlite');
+    putenv('DB_DATABASE=/tmp/database.sqlite');
+    putenv('APP_DEBUG=true');
     @touch('/tmp/database.sqlite');
 }
 

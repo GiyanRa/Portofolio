@@ -23,13 +23,10 @@ if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL'])) {
     @mkdir('/tmp/framework/views', 0777, true);
     @mkdir('/tmp/framework/sessions', 0777, true);
     @mkdir('/tmp/framework/cache/data', 0777, true);
-    
-    putenv('SESSION_DRIVER=file');
-    putenv('CACHE_STORE=file');
-    putenv('DB_CONNECTION=sqlite');
-    putenv('DB_DATABASE=/tmp/database.sqlite');
-    putenv('APP_DEBUG=true');
     @touch('/tmp/database.sqlite');
+    
+    $app->useEnvironmentPath(__DIR__.'/../');
+    $app->loadEnvironmentFrom('.env.vercel');
 }
 
 return $app;

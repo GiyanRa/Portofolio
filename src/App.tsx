@@ -555,13 +555,39 @@ function Research() {
 function Contact() {
   const [sent, setSent] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', message: '' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const subject = encodeURIComponent(`Pesan dari ${form.name} (${form.email})`)
-    const body = encodeURIComponent(`Nama: ${form.name}\nEmail: ${form.email}\n\n${form.message}`)
-    window.location.href = `mailto:giyanraditya024@gmail.com?subject=${subject}&body=${body}`
-    setSent(true)
+    setIsSubmitting(true)
+
+    // TODO: Ganti "YOUR_ACCESS_KEY_HERE" dengan Access Key dari web3forms.com
+    const object = {
+      ...form,
+      access_key: "308695aa-372d-4016-9054-613e781312ce"
+    }
+    const json = JSON.stringify(object)
+
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: json
+      })
+      const result = await res.json()
+      if (result.success) {
+        setSent(true)
+        setForm({ name: '', email: '', message: '' }) // Reset form
+      }
+    } catch (error) {
+      console.log(error)
+      alert("Terjadi kesalahan saat mengirim pesan.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
   const inputStyle: React.CSSProperties = {
     ...mono, width: '100%', background: '#fdfaf5', border: '1px solid #ddd6c8',
@@ -618,8 +644,8 @@ function Contact() {
                   <label style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#aaa', display: 'block', marginBottom: 8 }}>Message</label>
                   <textarea required rows={5} placeholder="Tell me about your project..." value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))} style={{ ...inputStyle, resize: 'none' }} onFocus={e => (e.target.style.borderColor = '#111')} onBlur={e => (e.target.style.borderColor = '#ddd6c8')} />
                 </div>
-                <button type="submit" style={{ ...mono, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.18em', padding: '16px', background: '#111', color: '#f5f0e8', border: 'none', cursor: 'pointer', fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#333' }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#111' }}>
-                  Send Message
+                <button type="submit" disabled={isSubmitting} style={{ ...mono, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.18em', padding: '16px', background: isSubmitting ? '#555' : '#111', color: '#f5f0e8', border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={e => { if (!isSubmitting) (e.currentTarget as HTMLElement).style.background = '#333' }} onMouseLeave={e => { if (!isSubmitting) (e.currentTarget as HTMLElement).style.background = '#111' }}>
+                  {isSubmitting ? 'SENDING...' : 'SEND MESSAGE'}
                 </button>
               </form>
             )}

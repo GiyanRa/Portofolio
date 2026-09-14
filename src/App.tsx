@@ -15,7 +15,19 @@ const SKILLS = [
   { category: 'Concepts', items: ['Microservices', 'DDD', 'TDD', 'WebSockets', 'OAuth2'] },
 ]
 
-const PROJECTS = [
+interface ProjectData {
+  id: string;
+  name: string;
+  year: string;
+  status: string;
+  desc: string;
+  tags: string[];
+  image: string;
+  censor: boolean;
+  link?: string;
+}
+
+const PROJECTS: ProjectData[] = [
   {
     id: '01', name: 'BookStore', year: '2026', status: 'Web App',
     desc: 'An end-to-end e-commerce platform featuring product browsing, advanced search, discount management, blog integration, and a comprehensive admin panel. Engineered for high-volume catalog management and active concurrent readership.',
@@ -36,6 +48,14 @@ const PROJECTS = [
     tags: ['Java', 'MySQL', 'Desktop App', 'Database'],
     image: indotexImg,
     censor: true,
+  },
+  {
+    id: '04', name: 'Fatika Portfolio', year: '2026', status: 'Live Project',
+    desc: 'A personal portfolio website for Fatika Rahmanisa, showcasing profile, education, experience, skills, and contact information with a modern green and cream color scheme.',
+    tags: ['React', 'TypeScript', 'Tailwind CSS', 'Vercel'],
+    image: '/portofatika.jpg',
+    censor: false,
+    link: 'https://fatika-portofolio.vercel.app/',
   },
 ]
 
@@ -439,7 +459,18 @@ function Projects() {
                     <span style={{ ...mono, fontSize: 10, color: '#bbb' }}>{p.year}</span>
                   </div>
                 </div>
-                <h3 style={{ ...serif, fontSize: 20, fontWeight: 700, color: '#111', marginBottom: 10 }}>{p.name}</h3>
+                <h3 style={{ ...serif, fontSize: 20, fontWeight: 700, color: '#111', marginBottom: 10 }}>
+                  {p.link ? (
+                    <a href={p.link} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#8a6a30')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'inherit')}
+                    >
+                      {p.name} ↗
+                    </a>
+                  ) : (
+                    p.name
+                  )}
+                </h3>
                 <p style={{ ...sans, fontSize: 13, color: '#777', lineHeight: 1.7, marginBottom: 18, fontWeight: 300 }}>{p.desc}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                   {p.tags.map(t => (

@@ -29,33 +29,33 @@ interface ProjectData {
 
 const PROJECTS: ProjectData[] = [
   {
-    id: '01', name: 'BookStore', year: '2026', status: 'Web App',
+    id: '01', name: 'Fatika Portfolio', year: '2026', status: 'Live Project',
+    desc: 'A personal portfolio website for Fatika Rahmanisa, showcasing profile, education, experience, skills, and contact information with a modern green and cream color scheme.',
+    tags: ['React', 'TypeScript', 'Tailwind CSS', 'Vercel'],
+    image: '/portofatika.jpg',
+    censor: false,
+    link: 'https://fatika-portofolio.vercel.app/',
+  },
+  {
+    id: '02', name: 'BookStore', year: '2026', status: 'Web App',
     desc: 'An end-to-end e-commerce platform featuring product browsing, advanced search, discount management, blog integration, and a comprehensive admin panel. Engineered for high-volume catalog management and active concurrent readership.',
     tags: ['Laravel', 'PHP', 'MySQL', 'Tailwind CSS', 'JavaScript'],
     image: bookstoreImg,
     censor: false,
   },
   {
-    id: '02', name: 'JourneyScape', year: '2026', status: 'Web App',
+    id: '03', name: 'JourneyScape', year: '2026', status: 'Web App',
     desc: 'Travel and tourism platform offering tour packages, WhatsApp-based booking, vehicle rental services, and curated destination highlights across Indonesia and abroad.',
     tags: ['React', 'TypeScript', 'Tailwind CSS', 'WhatsApp API'],
     image: journeyscapeImg,
     censor: false,
   },
   {
-    id: '03', name: 'Production Recording System', year: '2024', status: 'Internal App',
+    id: '04', name: 'Production Recording System', year: '2024', status: 'Internal App',
     desc: 'Desktop-based application developed during internship to digitize factory floor data entry, track production output, and generate daily manufacturing reports.',
     tags: ['Java', 'MySQL', 'Desktop App', 'Database'],
     image: indotexImg,
     censor: true,
-  },
-  {
-    id: '04', name: 'Fatika Portfolio', year: '2026', status: 'Live Project',
-    desc: 'A personal portfolio website for Fatika Rahmanisa, showcasing profile, education, experience, skills, and contact information with a modern green and cream color scheme.',
-    tags: ['React', 'TypeScript', 'Tailwind CSS', 'Vercel'],
-    image: '/portofatika.jpg',
-    censor: false,
-    link: 'https://fatika-portofolio.vercel.app/',
   },
 ]
 
@@ -405,7 +405,7 @@ function Projects() {
             onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}
           >All Projects →</a>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 24 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: 20 }}>
           {PROJECTS.map(p => (
             <div
               key={p.id}
@@ -414,7 +414,7 @@ function Projects() {
               onMouseLeave={() => setHovered(null)}
             >
               {/* Screenshot thumbnail */}
-              <div style={{ width: '100%', height: 200, overflow: 'hidden', borderBottom: '1px solid #ddd6c8', position: 'relative' }}>
+              <div style={{ width: '100%', height: 160, overflow: 'hidden', borderBottom: '1px solid #ddd6c8', position: 'relative' }}>
                 <img
                   src={p.image}
                   alt={p.name}
@@ -451,11 +451,11 @@ function Projects() {
                   </div>
                 )}
               </div>
-              <div style={{ padding: '28px 28px 32px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ padding: '20px 20px 24px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
                   <span style={{ ...mono, fontSize: 24, fontWeight: 700, color: '#e8e0d0' }}>{p.id}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', padding: '4px 10px', border: '1px solid #ccc', color: '#777' }}>{p.status}</span>
+                    <span style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', padding: '4px 10px', border: p.status === 'Live Project' ? '1px solid #111' : '1px solid #ccc', color: p.status === 'Live Project' ? '#111' : '#777', fontWeight: p.status === 'Live Project' ? 700 : 400 }}>{p.status}</span>
                     <span style={{ ...mono, fontSize: 10, color: '#bbb' }}>{p.year}</span>
                   </div>
                 </div>

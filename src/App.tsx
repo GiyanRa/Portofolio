@@ -29,7 +29,7 @@ interface ProjectData {
 
 const PROJECTS: ProjectData[] = [
   {
-    id: '01', name: 'Fatika Portfolio', year: '2026', status: 'Live Project',
+    id: '01', name: 'Fatika Portofolio', year: '2026', status: 'Live Project',
     desc: 'A personal portfolio website for Fatika Rahmanisa, showcasing profile, education, experience, skills, and contact information with a modern green and cream color scheme.',
     tags: ['React', 'TypeScript', 'Tailwind CSS', 'Vercel'],
     image: '/portofatika.jpg',

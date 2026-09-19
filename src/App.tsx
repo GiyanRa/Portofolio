@@ -4,6 +4,9 @@ import profilePhoto from './imports/image.png'
 import bookstoreImg from './imports/image-18.png'
 import journeyscapeImg from './imports/image-15.png'
 import indotexImg from './imports/image-16.png'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { OrbitControls, Sphere, useTexture } from '@react-three/drei'
+import * as THREE from 'three'
 
 const NAV_LINKS = ['about', 'skills', 'projects', 'experience', 'research', 'contact']
 
@@ -201,44 +204,17 @@ function HeroBackground() {
       })
 
       // --- Draw Moon ---
-      const moonGradient = ctx.createRadialGradient(
-        moonX - moonRadius * 0.3, moonY - moonRadius * 0.3, moonRadius * 0.05,
-        moonX, moonY, moonRadius
-      )
-      moonGradient.addColorStop(0, '#ffffff')
-      moonGradient.addColorStop(0.3, '#f8f9fa')
-      moonGradient.addColorStop(0.8, '#cbd5e1')
-      moonGradient.addColorStop(1, '#64748b')
+      // 2D Moon has been replaced by 3D Interactive Moon via React Three Fiber
 
+      // We still want the outer glow if it looks good, or we can just leave it to R3F.
+      // Let's keep a subtle glow behind the 3D canvas
       ctx.beginPath()
       ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2)
-      ctx.fillStyle = moonGradient
-
-      // Moon outer glow
+      ctx.fillStyle = 'rgba(255,255,255,0)'
       ctx.shadowColor = 'rgba(255, 255, 255, 0.15)'
       ctx.shadowBlur = 60
       ctx.fill()
       ctx.shadowBlur = 0 // Reset
-
-      // Moon craters (relative to moon center and radius scale)
-      const scale = moonRadius / (Math.min(width, height) * 0.35)
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'
-
-      ctx.beginPath()
-      ctx.arc(moonX - 50 * scale, moonY - 50 * scale, 45 * scale, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.beginPath()
-      ctx.arc(moonX + 60 * scale, moonY + 20 * scale, 30 * scale, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.beginPath()
-      ctx.arc(moonX + 10 * scale, moonY - 90 * scale, 25 * scale, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.beginPath()
-      ctx.arc(moonX - 40 * scale, moonY + 80 * scale, 15 * scale, 0, Math.PI * 2)
-      ctx.fill()
 
       // Draw Stars
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
@@ -295,6 +271,159 @@ function HeroBackground() {
       ref={canvasRef}
       className="absolute inset-0 z-0 w-full h-full pointer-events-none"
     />
+  )
+}
+
+function InteractiveMoon() {
+  const groupRef = React.useRef<THREE.Group>(null)
+  const pointsRef = React.useRef<THREE.Points>(null)
+  const lineMatRef = React.useRef<THREE.LineBasicMaterial>(null)
+  const [isGemini, setIsGemini] = useState(false)
+  const progressRef = React.useRef(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsGemini(prev => !prev)
+    }, 7000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const { spherePositions, targetPositions, geminiLinesData, currentPositions } = React.useMemo(() => {
+    const sphereGeo = new THREE.SphereGeometry(1, 48, 48)
+    const sPos = sphereGeo.attributes.position.array
+    const count = sPos.length / 3
+
+    const geminiPoints = [
+      { x: -40, y: -120 }, { x: 40, y: -100 }, { x: -50, y: -50 }, { x: 20, y: -40 },
+      { x: -60, y: 30 }, { x: 10, y: 40 }, { x: -80, y: 110 }, { x: -10, y: 120 },
+      { x: -100, y: -30 }, { x: 70, y: -20 }
+    ]
+    const scale = 0.008
+    const gemini3D = geminiPoints.map(p => new THREE.Vector3(p.x * scale, -p.y * scale, 0))
+
+    const tPos = new Float32Array(sPos.length)
+    for (let i = 0; i < count; i++) {
+      const target = gemini3D[i % gemini3D.length]
+      tPos[i * 3] = target.x + (Math.random() - 0.5) * 0.03
+      tPos[i * 3 + 1] = target.y + (Math.random() - 0.5) * 0.03
+      tPos[i * 3 + 2] = target.z + (Math.random() - 0.5) * 0.03
+    }
+
+    const lines = [
+      [0, 2], [2, 4], [4, 6],
+      [1, 3], [3, 5], [5, 7],
+      [4, 5], [2, 8], [3, 9]
+    ]
+    const lPos = new Float32Array(lines.length * 2 * 3)
+    lines.forEach(([i, j], idx) => {
+      lPos[idx * 6] = gemini3D[i].x; lPos[idx * 6 + 1] = gemini3D[i].y; lPos[idx * 6 + 2] = gemini3D[i].z;
+      lPos[idx * 6 + 3] = gemini3D[j].x; lPos[idx * 6 + 4] = gemini3D[j].y; lPos[idx * 6 + 5] = gemini3D[j].z;
+    })
+
+    const cPos = new Float32Array(sPos)
+    return { spherePositions: sPos, targetPositions: tPos, geminiLinesData: lPos, currentPositions: cPos }
+  }, [])
+
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += 0.0005
+      groupRef.current.rotation.z += 0.0002
+    }
+
+    const targetP = isGemini ? 1 : 0
+    progressRef.current = THREE.MathUtils.lerp(progressRef.current, targetP, delta * 2.5)
+    let p = Math.max(0, Math.min(1, progressRef.current))
+
+    // Cubic ease-in-out
+    const easeP = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+
+    if (pointsRef.current) {
+      const positions = pointsRef.current.geometry.attributes.position.array as Float32Array
+      for (let i = 0; i < positions.length; i++) {
+        positions[i] = THREE.MathUtils.lerp(spherePositions[i], targetPositions[i], easeP)
+      }
+      pointsRef.current.geometry.attributes.position.needsUpdate = true
+    }
+
+    if (lineMatRef.current) {
+      lineMatRef.current.opacity = easeP * 0.4
+      lineMatRef.current.visible = lineMatRef.current.opacity > 0.01
+    }
+  })
+
+  return (
+    <group ref={groupRef}>
+      <points ref={pointsRef}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[currentPositions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial size={0.015} color="#88aaff" transparent opacity={0.6} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </points>
+
+      <lineSegments>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[geminiLinesData, 3]}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial ref={lineMatRef} color="#ffffff" transparent opacity={0} linewidth={2} />
+      </lineSegments>
+    </group>
+  )
+}
+
+function MoonContainer() {
+  const [moonStyle, setMoonStyle] = useState({ left: 0, top: 0, width: 0, height: 0 })
+  const [isReady, setIsReady] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const isMobile = width < 768
+      const moonX = isMobile ? width * 0.5 : width * 0.7
+      const moonY = isMobile ? height * 0.35 : height * 0.5
+      // increase radius slightly to fill the canvas nicely
+      const moonRadius = Math.min(width, height) * (isMobile ? 0.3 : 0.35)
+      const size = moonRadius * 2
+
+      setMoonStyle({
+        left: moonX - moonRadius,
+        top: moonY - moonRadius,
+        width: size,
+        height: size
+      })
+      setIsReady(true)
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  if (!isReady) return null
+
+  return (
+    <div className="absolute z-10 pointer-events-auto cursor-grab active:cursor-grabbing" style={{ ...moonStyle }}>
+      <Canvas camera={{ position: [0, 0, 2.7], fov: 45 }} gl={{ alpha: true }}>
+        <ambientLight intensity={0.1} />
+        <directionalLight position={[-5, 3, 5]} intensity={1.5} color="#ffffff" />
+        <directionalLight position={[5, -3, -5]} intensity={0.5} color="#cbd5e1" />
+        <React.Suspense fallback={null}>
+          <InteractiveMoon />
+        </React.Suspense>
+        <OrbitControls
+          enableZoom={false}
+          enablePan={false}
+          autoRotate={true}
+          autoRotateSpeed={2.0}
+        />
+      </Canvas>
+    </div>
   )
 }
 
@@ -391,12 +520,13 @@ function Hero() {
     >
       <div className="absolute inset-0 z-0">
         <HeroBackground />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a192f]/90 z-10" />
+        <MoonContainer />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a192f]/90 z-20 pointer-events-none" />
       </div>
 
-      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-16 flex flex-col justify-center relative z-20 py-12 md:py-20 h-full">
+      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-16 flex flex-col justify-center relative z-20 py-12 md:py-20 h-full pointer-events-none">
         <motion.div
-          className="flex flex-col items-start w-full max-w-3xl"
+          className="flex flex-col items-start w-full max-w-3xl pointer-events-auto"
           initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
         >
           {/* Garis aksen minimalis ala Kuon Yagi */}

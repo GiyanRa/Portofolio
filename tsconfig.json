@@ -30,6 +30,9 @@
     "resources/js/**/*.ts",
     "resources/js/**/*.tsx",
     "resources/js/**/*.d.ts",
-    "resources/js/**/*.js"
+    "resources/js/**/*.js",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts"
   ]
 }

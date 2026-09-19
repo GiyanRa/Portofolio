@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import profilePhoto from './imports/image.png'
 import bookstoreImg from './imports/image-18.png'
 import journeyscapeImg from './imports/image-15.png'
@@ -10,9 +11,7 @@ const SKILLS = [
   { category: 'Languages', items: ['TypeScript', 'Python', 'Java', 'Lua', 'SQL', 'PHP'] },
   { category: 'Frontend', items: ['React', 'Next.js', 'Tailwind CSS', 'WebGL', 'GraphQL'] },
   { category: 'Backend', items: ['Node.js', 'FastAPI', 'PostgreSQL', 'Laravel'] },
-  { category: 'Infrastructure', items: ['Docker', 'Kubernetes', 'AWS', 'Terraform', 'CI/CD'] },
   { category: 'Tools', items: ['Git', 'Linux', 'Antigravity', 'Figma', 'Canva'] },
-  { category: 'Concepts', items: ['Microservices', 'DDD', 'TDD', 'WebSockets', 'OAuth2'] },
 ]
 
 interface ProjectData {
@@ -72,54 +71,230 @@ const EXPERIENCE = [
   },
 ]
 
-const TERMINAL_LINES = [
-  { cmd: 'whoami', out: 'Giyan Radhietya Akmal — Software Engineer' },
-  { cmd: 'cat skills.txt', out: 'Go · TypeScript · Rust · Python · K8s' },
-  { cmd: 'git log --oneline -1', out: 'a3f2c8d feat: open to new opportunities' },
-]
+// Reusable animation config for scroll reveal (triggers every time it comes into view)
+const revealVariants: Variants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+}
 
-const mono = { fontFamily: "'JetBrains Mono', monospace" }
-const serif = { fontFamily: "'Playfair Display', serif" }
-const sans = { fontFamily: "'Inter', sans-serif" }
+const scaleVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+}
 
-function TerminalTyper() {
-  const [step, setStep] = useState(0)
-  const [typed, setTyped] = useState('')
-  const [phase, setPhase] = useState<'typing' | 'showing'>('typing')
+const viewportConfig = { once: false, amount: 0.15 }
+
+function HeroBackground() {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    if (step >= TERMINAL_LINES.length) return
-    const line = TERMINAL_LINES[step]
-    if (phase === 'typing') {
-      if (typed.length < line.cmd.length) {
-        const t = setTimeout(() => setTyped(line.cmd.slice(0, typed.length + 1)), 65)
-        return () => clearTimeout(t)
-      }
-      const t = setTimeout(() => setPhase('showing'), 400)
-      return () => clearTimeout(t)
-    } else {
-      const t = setTimeout(() => { setStep(s => s + 1); setTyped(''); setPhase('typing') }, 1400)
-      return () => clearTimeout(t)
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let width = canvas.width = window.innerWidth
+    let height = canvas.height = window.innerHeight
+
+    // Elements
+    const stars: { x: number; y: number; size: number; speed: number }[] = []
+    for (let i = 0; i < (width < 768 ? 20 : 50); i++) {
+      stars.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 2,
+        speed: Math.random() * 0.5 + 0.1
+      })
     }
-  }, [step, typed, phase])
+
+    const clouds: { x: number; y: number; length: number; speed: number; color: string; thickness: number }[] = []
+    const numClouds = width < 768 ? 15 : 30
+    for (let i = 0; i < numClouds; i++) {
+      const isDark = Math.random() > 0.5
+      clouds.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        length: Math.random() * 300 + 100,
+        speed: (Math.random() * 1.5 + 0.5) * (Math.random() > 0.5 ? 1 : -1),
+        thickness: Math.random() * 20 + 10,
+        color: isDark ? 'rgba(10, 25, 47, 0.9)' : 'rgba(255, 255, 255, 0.15)'
+      })
+    }
+
+    let animationFrameId: number
+
+    const render = () => {
+      if (!canvas) return
+
+      // Mencegah bulan menjadi lonjong saat di-zoom in dengan sinkronisasi resolusi canvas aktual
+      if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+        width = canvas.width = canvas.clientWidth
+        height = canvas.height = canvas.clientHeight
+      }
+
+      // Responsive logic
+      const isMobile = width < 768
+      const moonX = isMobile ? width * 0.5 : width * 0.7
+      const moonY = isMobile ? height * 0.35 : height * 0.5
+      const moonRadius = Math.min(width, height) * (isMobile ? 0.3 : 0.35)
+
+      // Background gradient
+      const gradient = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, width)
+      gradient.addColorStop(0, '#112240')
+      gradient.addColorStop(1, '#0a192f')
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, width, height)
+
+      // --- Draw Gemini Constellation ---
+      // We place it slightly offset from the center
+      const geminiCx = isMobile ? width * 0.5 : width * 0.25
+      const geminiCy = isMobile ? height * 0.7 : height * 0.4
+      // Pastikan skala memiliki batas minimal agar tetap terlihat saat di zoom ekstrem
+      const gScale = Math.max(0.6, Math.min(width, height) / 800)
+
+      const geminiPoints = [
+        { x: -40, y: -120, name: 'Castor' },   // 0
+        { x: 40, y: -100, name: 'Pollux' },    // 1
+        { x: -50, y: -50 },                    // 2 Castor neck
+        { x: 20, y: -40 },                     // 3 Pollux neck
+        { x: -60, y: 30 },                     // 4 Castor waist
+        { x: 10, y: 40 },                      // 5 Pollux waist
+        { x: -80, y: 110 },                    // 6 Castor foot
+        { x: -10, y: 120 },                    // 7 Pollux foot
+        { x: -100, y: -30 },                   // 8 Castor arm
+        { x: 70, y: -20 },                     // 9 Pollux arm
+      ]
+
+      const geminiLines = [
+        [0, 2], [2, 4], [4, 6], // Castor body
+        [1, 3], [3, 5], [5, 7], // Pollux body
+        [4, 5],                 // Waist connection
+        [2, 8], [3, 9]          // Arms
+      ]
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)' // Diperjelas dari 0.15 ke 0.4
+      ctx.lineWidth = 1.5 // Garis sedikit lebih tebal
+      geminiLines.forEach(([i, j]) => {
+        const p1 = geminiPoints[i]
+        const p2 = geminiPoints[j]
+        ctx.beginPath()
+        ctx.moveTo(geminiCx + p1.x * gScale, geminiCy + p1.y * gScale)
+        ctx.lineTo(geminiCx + p2.x * gScale, geminiCy + p2.y * gScale)
+        ctx.stroke()
+      })
+
+      const pulse = Math.sin(Date.now() * 0.002) * 0.3 + 0.7
+      geminiPoints.forEach(p => {
+        ctx.beginPath()
+        const r = p.name ? 5 * gScale : 2.5 * gScale // Bintang sedikit diperbesar
+        ctx.arc(geminiCx + p.x * gScale, geminiCy + p.y * gScale, r, 0, Math.PI * 2)
+        ctx.fillStyle = p.name ? `rgba(255, 255, 255, ${pulse})` : 'rgba(255, 255, 255, 0.7)'
+        ctx.fill()
+
+        if (p.name) {
+          // Glow lebih terang untuk Castor & Pollux
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.9)'
+          ctx.shadowBlur = 15
+          ctx.fill()
+          ctx.shadowBlur = 0
+        }
+      })
+
+      // --- Draw Moon ---
+      const moonGradient = ctx.createRadialGradient(
+        moonX - moonRadius * 0.3, moonY - moonRadius * 0.3, moonRadius * 0.05,
+        moonX, moonY, moonRadius
+      )
+      moonGradient.addColorStop(0, '#ffffff')
+      moonGradient.addColorStop(0.3, '#f8f9fa')
+      moonGradient.addColorStop(0.8, '#cbd5e1')
+      moonGradient.addColorStop(1, '#64748b')
+
+      ctx.beginPath()
+      ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2)
+      ctx.fillStyle = moonGradient
+
+      // Moon outer glow
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.15)'
+      ctx.shadowBlur = 60
+      ctx.fill()
+      ctx.shadowBlur = 0 // Reset
+
+      // Moon craters (relative to moon center and radius scale)
+      const scale = moonRadius / (Math.min(width, height) * 0.35)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'
+
+      ctx.beginPath()
+      ctx.arc(moonX - 50 * scale, moonY - 50 * scale, 45 * scale, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc(moonX + 60 * scale, moonY + 20 * scale, 30 * scale, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc(moonX + 10 * scale, moonY - 90 * scale, 25 * scale, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc(moonX - 40 * scale, moonY + 80 * scale, 15 * scale, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Draw Stars
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+      stars.forEach(star => {
+        ctx.beginPath()
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+        ctx.fill()
+        star.y -= star.speed
+        if (star.y < 0) {
+          star.y = height
+          star.x = Math.random() * width
+        }
+      })
+
+      // Draw horizontal clouds/lines
+      ctx.lineCap = 'round'
+      clouds.forEach(cloud => {
+        ctx.beginPath()
+        ctx.moveTo(cloud.x, cloud.y)
+        ctx.lineTo(cloud.x + cloud.length, cloud.y)
+        ctx.lineWidth = cloud.thickness
+        ctx.strokeStyle = cloud.color
+        ctx.stroke()
+
+        cloud.x += cloud.speed
+        if (cloud.speed > 0 && cloud.x > width + 100) {
+          cloud.x = -cloud.length - 100
+          cloud.y = Math.random() * height
+        } else if (cloud.speed < 0 && cloud.x + cloud.length < -100) {
+          cloud.x = width + 100
+          cloud.y = Math.random() * height
+        }
+      })
+
+      animationFrameId = requestAnimationFrame(render)
+    }
+
+    render()
+
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth
+      height = canvas.height = window.innerHeight
+    }
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      cancelAnimationFrame(animationFrameId)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
 
   return (
-    <div style={{ ...mono, fontSize: 13, lineHeight: '1.9' }}>
-      {TERMINAL_LINES.slice(0, step).map((l, i) => (
-        <div key={i}>
-          <span style={{ color: '#888' }}>$ </span>
-          <span style={{ color: '#111' }}>{l.cmd}</span>
-          <div style={{ color: '#999', paddingLeft: 16 }}>→ {l.out}</div>
-        </div>
-      ))}
-      {step < TERMINAL_LINES.length && (
-        <div>
-          <span style={{ color: '#888' }}>$ </span>
-          <span style={{ color: '#111' }}>{typed}</span>
-          <span className="cursor-blink" style={{ color: '#111' }}>▋</span>
-        </div>
-      )}
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 z-0 w-full h-full pointer-events-none"
+    />
   )
 }
 
@@ -133,100 +308,77 @@ function NavBar() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  // On dark hero: white text. Scrolled into cream: dark text.
-  const logoColor = scrolled ? '#111111' : '#ffffff'
-  const linkColor = scrolled ? '#888888' : 'rgba(255,255,255,0.65)'
-  const linkHover = scrolled ? '#111111' : '#ffffff'
-  const btnBorder = scrolled ? '#111111' : 'rgba(255,255,255,0.55)'
-  const btnColor = scrolled ? '#111111' : '#ffffff'
-  const btnHoverBg = scrolled ? '#111111' : '#ffffff'
-  const btnHoverTx = scrolled ? '#f5f0e8' : '#1e0e0e'
-  const hamburgerColor = scrolled ? '#111111' : '#ffffff'
-
   return (
     <>
       <nav
-        className="fixed top-0 left-0 right-0 z-50"
-        style={{
-          background: scrolled ? 'rgba(245,240,232,0.96)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(12px)' : 'none',
-          borderBottom: scrolled ? '1px solid #ddd6c8' : '1px solid transparent',
-          transition: 'background 0.4s ease, border-color 0.4s ease',
-        }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled && !menuOpen ? 'bg-white/90 backdrop-blur-md border-b border-zinc-200 py-4' : 'bg-transparent border-b border-transparent py-6'
+          }`}
       >
-        <div className="w-full px-6 h-16 flex items-center justify-between" style={{ maxWidth: 1400, margin: '0 auto' }}>
-          {/* Logo */}
-          <span style={{ fontFamily: '"Jim Nightshade", cursive', color: logoColor, fontSize: 30, paddingLeft: 24, paddingRight: 10, transition: 'color 0.4s ease', lineHeight: 1, flexShrink: 0 }}>
-            G
+        <div className="max-w-[1400px] mx-auto w-full px-6 flex items-center justify-between">
+          <span className={`font-serif text-2xl md:text-3xl font-bold tracking-tighter transition-colors relative z-50 ${scrolled && !menuOpen ? 'text-black' : 'text-white'}`}>
+            G.
           </span>
 
-          {/* Desktop links — centered absolutely */}
-          <div className="hidden md:flex items-center gap-8" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
             {NAV_LINKS.map(l => (
               <a
                 key={l}
                 href={`#${l}`}
-                style={{ ...mono, color: linkColor, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.18em', textDecoration: 'none', transition: 'color 0.4s ease', fontWeight: 700 }}
-                onMouseEnter={e => (e.currentTarget.style.color = linkHover)}
-                onMouseLeave={e => (e.currentTarget.style.color = linkColor)}
+                className={`font-mono text-xs uppercase tracking-[0.2em] transition-colors duration-300 ${scrolled && !menuOpen ? 'text-zinc-500 hover:text-black' : 'text-zinc-400 hover:text-white'}`}
               >
                 {l}
               </a>
             ))}
           </div>
-
-          {/* Desktop CTA */}
           <a
             href="#contact"
-            className="hidden md:block"
-            style={{ ...mono, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', padding: '10px 20px', border: `1px solid ${btnBorder}`, color: btnColor, textDecoration: 'none', fontWeight: 600, transition: 'all 0.4s ease', flexShrink: 0, marginRight: 48 }}
-            onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = btnHoverBg; el.style.color = btnHoverTx }}
-            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'transparent'; el.style.color = btnColor; el.style.borderColor = btnBorder }}
+            className={`hidden md:block font-mono text-xs uppercase tracking-[0.15em] px-6 py-3 border transition-all duration-300 ${scrolled && !menuOpen ? 'border-zinc-300 text-black hover:bg-black hover:text-white' : 'border-zinc-600 text-white hover:bg-white hover:text-black'}`}
           >
             Hire Me
           </a>
 
-          {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2"
-            onClick={() => setMenuOpen(o => !o)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: hamburgerColor, transition: 'color 0.4s ease', marginRight: 16 }}
+            className={`md:hidden flex flex-col justify-center items-center w-8 h-8 gap-1.5 transition-colors relative z-50 ${menuOpen || !scrolled ? 'text-white' : 'text-black'}`}
+            onClick={() => setMenuOpen(!menuOpen)}
           >
-            <div style={{ width: 22, height: 2, background: 'currentColor', marginBottom: 5, borderRadius: 1 }} />
-            <div style={{ width: 22, height: 2, background: 'currentColor', marginBottom: 5, borderRadius: 1 }} />
-            <div style={{ width: 22, height: 2, background: 'currentColor', borderRadius: 1 }} />
+            <span className={`block h-0.5 w-6 bg-current transform transition duration-300 ease-in-out ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`block h-0.5 w-6 bg-current transform transition duration-300 ease-in-out ${menuOpen ? 'opacity-0' : ''}`} />
+            <span className={`block h-0.5 w-6 bg-current transform transition duration-300 ease-in-out ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
           </button>
         </div>
       </nav>
 
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div
-          className="fixed inset-0 z-40 flex flex-col pt-16"
-          style={{ background: 'linear-gradient(135deg, #1e0e0e 0%, #2a1010 50%, #1e0e0e 100%)' }}
-          onClick={() => setMenuOpen(false)}
-        >
-          <div className="flex flex-col items-center justify-center flex-1 gap-10">
-            {NAV_LINKS.map(l => (
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-40 flex flex-col pt-24 bg-black"
+          >
+            <div className="flex flex-col items-center justify-center flex-1 gap-8">
+              {NAV_LINKS.map(l => (
+                <a
+                  key={l}
+                  href={`#${l}`}
+                  className="font-serif text-3xl md:text-4xl text-white font-medium hover:text-zinc-400 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {l.charAt(0).toUpperCase() + l.slice(1)}
+                </a>
+              ))}
               <a
-                key={l}
-                href={`#${l}`}
-                style={{ ...serif, color: '#f0ebe0', fontSize: 28, fontWeight: 700, textDecoration: 'none', letterSpacing: '-0.01em' }}
+                href="#contact"
+                className="mt-8 font-mono text-xs uppercase tracking-[0.2em] px-8 py-4 border border-white text-white hover:bg-white hover:text-black transition-all"
                 onClick={() => setMenuOpen(false)}
               >
-                {l.charAt(0).toUpperCase() + l.slice(1)}
+                Hire Me
               </a>
-            ))}
-            <a
-              href="#contact"
-              style={{ ...mono, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.18em', padding: '14px 32px', border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', textDecoration: 'none', marginTop: 16 }}
-              onClick={() => setMenuOpen(false)}
-            >
-              Hire Me
-            </a>
-          </div>
-        </div>
-      )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
@@ -235,68 +387,47 @@ function Hero() {
   return (
     <section
       id="hero"
-      style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e0e0e 0%, #2a1010 40%, #3d1a1a 70%, #1e0e0e 100%)', display: 'flex', alignItems: 'stretch' }}
+      className="relative min-h-[100svh] flex items-center bg-[#0a192f] overflow-hidden pt-16 md:pt-20"
     >
-      {/* Mobile layout: photo as background, text overlay */}
-      <div className="md:hidden w-full" style={{ position: 'relative', minHeight: '100vh' }}>
-        {/* Full-screen photo */}
-        <img
-          src={profilePhoto}
-          alt="Giyan Radhietya Akmal"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-        />
-        {/* Dark gradient overlay — bottom heavy so text is readable */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(26,24,20,0.25) 0%, rgba(26,24,20,0.55) 50%, rgba(26,24,20,0.85) 100%)' }} />
-        {/* Text on top */}
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: '100vh', padding: '80px 28px 52px' }}>
-          <p style={{ ...mono, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#b89a5e', marginBottom: 18 }}>
-            Software Engineer | Full-Stack Web Developer | Informatics Graduate | UI / UX Designer
-          </p>
-          <h1 style={{ ...serif, fontSize: 'clamp(2.8rem, 11vw, 4.5rem)', fontWeight: 700, color: 'rgba(240,235,224,0.92)', lineHeight: 1.0, letterSpacing: '-0.02em', marginBottom: 22 }}>
-            Giyan<br />Radhietya<br />Akmal
-          </h1>
-          <p style={{ ...serif, fontSize: 17, fontStyle: 'italic', color: 'rgba(184,154,94,0.9)', marginBottom: 12, fontWeight: 400 }}>
-            Crafted with precision, driven by purpose.
-          </p>
-          <p style={{ ...sans, fontSize: 13, color: 'rgba(138,128,112,0.85)', fontWeight: 400 }}>
-            Bandung, Indonesia
-          </p>
-        </div>
+      <div className="absolute inset-0 z-0">
+        <HeroBackground />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a192f]/90 z-10" />
       </div>
 
-      {/* Desktop layout: two columns */}
-      <div
-        className="hidden md:grid w-full"
-        style={{ maxWidth: 1100, margin: '0 auto', gridTemplateColumns: '1fr 360px', alignItems: 'center', minHeight: '100vh', paddingTop: '64px', paddingBottom: 0, paddingLeft: 0, paddingRight: 0, gap: 0 }}
-      >
-        {/* Text column */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '80px 48px 80px 64px' }}>
-          <div>
-            <p style={{ ...mono, fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#b89a5e', marginBottom: 28 }}>
-              Software Engineer | Full-Stack Web Developer | Informatics Graduate | UI / UX Designer
-            </p>
-            <h1 style={{ ...serif, fontSize: 'clamp(3.2rem, 6.5vw, 6rem)', fontWeight: 700, color: '#f0ebe0', lineHeight: 1.0, letterSpacing: '-0.02em', marginBottom: 32 }}>
-              Giyan<br />Radhietya<br />Akmal
-            </h1>
-            <p style={{ ...serif, fontSize: 'clamp(1.1rem, 2vw, 1.5rem)', fontStyle: 'italic', color: '#b89a5e', marginBottom: 20, fontWeight: 400 }}>
-              Crafted with precision, driven by purpose.
-            </p>
-            <p style={{ ...sans, fontSize: 14, color: '#8a8070', fontWeight: 400, letterSpacing: '0.01em' }}>
-              Bandung, Indonesia
-            </p>
-          </div>
-        </div>
+      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-16 flex flex-col justify-center relative z-20 py-12 md:py-20 h-full">
+        <motion.div
+          className="flex flex-col items-start w-full max-w-3xl"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+        >
+          {/* Garis aksen minimalis ala Kuon Yagi */}
+          <div className="flex flex-col gap-2 md:gap-3 mb-8 md:mb-12">
+            <div className="h-[2px] w-10 md:w-12 bg-white/50" />
+            <div className="h-[2px] w-6 md:w-8 bg-white/50" />
+            <div className="h-[2px] w-10 md:w-12 bg-white/50" />
 
-        {/* Photo column */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '80px 64px 80px 0' }}>
-          <div style={{ width: '100%', overflow: 'hidden', aspectRatio: '3/4' }}>
-            <img
-              src={profilePhoto}
-              alt="Giyan Radhietya Akmal"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-            />
+            <div className="flex gap-3 md:gap-4 mt-6 md:mt-8">
+              <div className="h-[2px] md:h-[3px] w-12 md:w-16 bg-[#ff4d4f]" />
+              <div className="h-[2px] md:h-[3px] w-20 md:w-24 bg-[#ff4d4f]" />
+            </div>
           </div>
-        </div>
+
+          {/* text-5xl on mobile prevents overflow from the long word "RADHIETYA" */}
+          <h1 className="font-serif text-5xl sm:text-7xl md:text-8xl lg:text-[7rem] font-bold text-white leading-[1.1] tracking-tight mb-6 md:mb-8 break-words w-full">
+            GIYAN<br />
+            RADHIETYA
+          </h1>
+
+          <div className="font-mono text-xs sm:text-sm md:text-base tracking-[0.1em] sm:tracking-[0.25em] text-white/80 flex flex-col gap-2 md:gap-3 mb-10 md:mb-12">
+            <span>web developer /</span>
+            <span>software engineer.</span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start w-full sm:w-auto mt-2 md:mt-4">
+            <a href="#projects" className="w-full sm:w-auto text-center font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] px-8 md:px-10 py-4 md:py-5 bg-[#ff4d4f] text-white hover:bg-white hover:text-[#ff4d4f] transition-all duration-300 font-bold border border-[#ff4d4f]">
+              Project
+            </a>
+          </div>
+        </motion.div>
       </div>
     </section>
   )
@@ -304,51 +435,55 @@ function Hero() {
 
 function Stats() {
   const items = [
-    { value: '2+', label: 'Years of Experience' },
-    { value: '3', label: 'Projects' },
-    { value: '2025', label: 'S.Kom. Informatics' },
+    { value: '2+', label: 'Years Experience' },
+    { value: '3+', label: 'Key Projects' },
+    { value: '2025', label: 'B.Sc Informatics' },
   ]
   return (
-    <section id="about" style={{ background: '#f5f0e8', padding: '64px 0 56px' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto', paddingLeft: 'clamp(24px, 8vw, 120px)', paddingRight: 'clamp(24px, 4vw, 48px)' }}>
-        <div className="grid grid-cols-1 sm:grid-cols-3" style={{ gap: '0 1px', background: '#ddd6c8' }}>
-          {items.map(item => (
-            <div
-              key={item.label}
-              style={{ background: '#f5f0e8', paddingTop: 0, paddingRight: 28, paddingBottom: 28, paddingLeft: 28 }}
-            >
-              <div style={{ height: 2, background: '#b89a5e', marginBottom: 24, marginTop: 0 }} />
-              <div style={{
-                ...serif,
-                fontSize: 'clamp(2.2rem, 5vw, 3.5rem)',
-                fontWeight: 700,
-                color: '#b89a5e',
-                lineHeight: 1,
-                marginBottom: 12,
-                letterSpacing: '-0.02em',
-              }}>
-                {item.value}
-              </div>
-              <div style={{
-                ...mono,
-                fontSize: 10,
-                textTransform: 'uppercase',
-                letterSpacing: '0.2em',
-                color: '#b89a5e',
-                lineHeight: 1.4,
-              }}>
-                {item.label}
-              </div>
-            </div>
-          ))}
-        </div>
+    <section id="about" className="bg-white py-20 md:py-32 relative">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-16 md:gap-24 items-center">
 
-        {/* Bio paragraph */}
-        <div style={{ marginTop: 48, paddingLeft: 'clamp(0px, 1vw, 8px)', maxWidth: 720 }}>
-          <p style={{ ...sans, fontSize: 15, color: '#7a6a50', lineHeight: 1.85, fontWeight: 300 }}>
-            I'm <span style={{ fontWeight: 500, color: '#5a4a30' }}>Giyan Radhietya Akmal</span>, a fullstack developer, UI/UX designer, and machine learning engineer based in Bandung, Indonesia. I hold a bachelor's degree in Informatics Engineering from <span style={{ fontWeight: 500, color: '#5a4a30' }}>Universitas Jenderal Achmad Yani</span>.
+        {/* Foto profil dipindah ke sini agar layout Hero lebih lega dan tahan zoom */}
+        <motion.div
+          className="lg:col-span-5 flex justify-center lg:justify-start order-2 lg:order-1 w-full"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={scaleVariants}
+        >
+          <div className="w-3/4 sm:w-1/2 lg:w-full max-w-[320px] lg:max-w-md aspect-[3/4] overflow-hidden rounded-sm grayscale hover:grayscale-0 transition-all duration-700 relative group border border-zinc-200 mx-auto lg:mx-0">
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10" />
+            <img
+              src={profilePhoto}
+              alt="Giyan Radhietya Akmal"
+              className="w-full h-full object-cover object-top scale-105 group-hover:scale-100 transition-transform duration-700"
+            />
+          </div>
+        </motion.div>
+
+        <motion.div className="lg:col-span-7 order-1 lg:order-2" initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}>
+          <h2 className="font-serif text-4xl md:text-5xl text-black font-bold mb-8 text-center lg:text-left">Engineering with precision.</h2>
+          <p className="font-sans text-zinc-600 text-base md:text-lg leading-relaxed font-light mb-12 max-w-xl text-center lg:text-left mx-auto lg:mx-0">
+            I am a software engineer and UI/UX enthusiast based in Bandung, Indonesia.
+            I specialize in building scalable web architectures and crafting intuitive digital experiences
+            that bridge the gap between complex logic and beautiful design.
           </p>
-        </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 md:gap-6 text-center sm:text-left mx-auto lg:mx-0">
+            {items.map((item, i) => (
+              <motion.div
+                key={item.label} className="flex flex-col gap-3 md:gap-4 items-center sm:items-start"
+                initial="hidden" whileInView="visible" viewport={viewportConfig}
+                variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: i * 0.1 } } }}
+              >
+                <div className="font-serif text-5xl md:text-6xl font-bold text-black tracking-tighter">
+                  {item.value}
+                </div>
+                <div className="font-mono text-[10px] md:text-xs uppercase tracking-[0.15em] text-zinc-500 leading-relaxed max-w-[120px]">
+                  {item.label}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
       </div>
     </section>
   )
@@ -356,33 +491,40 @@ function Stats() {
 
 function Skills() {
   return (
-    <section id="skills" style={{ padding: '80px 0', borderTop: '1px solid #ddd6c8' }}>
-      <div className="w-full px-10 md:px-16">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 48 }}>
-          <h2 style={{ ...serif, fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 700, color: '#111' }}>Tech Stack</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" style={{ gap: 1, background: '#ddd6c8' }}>
-          {SKILLS.map(group => (
-            <div
-              key={group.category}
-              style={{ background: '#f5f0e8', padding: '24px 20px', transition: 'background 0.18s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#fff' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#f5f0e8' }}
+    <section id="skills" className="bg-zinc-50 py-20 md:py-32 border-t border-zinc-200">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12">
+        <motion.div
+          className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-8 mb-12 md:mb-20 text-center md:text-left"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+        >
+          <h2 className="font-serif text-4xl md:text-6xl text-black font-bold tracking-tight">Tech Stack</h2>
+          <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500 max-w-xs mx-auto md:mx-0 mt-4 md:mt-0">
+            Tools and technologies I use to build robust digital solutions.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12 md:gap-y-16">
+          {SKILLS.map((group, index) => (
+            <motion.div
+              key={group.category} className="group flex flex-col items-center md:items-start"
+              initial="hidden" whileInView="visible" viewport={viewportConfig}
+              variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: index * 0.1 } } }}
             >
-              <div style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: 14 }}>{group.category}</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              <div className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-black font-bold mb-4 md:mb-6 flex items-center gap-4 w-full justify-center md:justify-start">
+                {group.category}
+                <div className="h-px flex-1 bg-zinc-300 group-hover:bg-black transition-colors duration-500" />
+              </div>
+              <div className="flex flex-wrap gap-2 md:gap-3 justify-center md:justify-start">
                 {group.items.map(skill => (
                   <span
                     key={skill}
-                    style={{ ...mono, fontSize: 11, padding: '5px 10px', border: '1px solid #ddd6c8', color: '#555', cursor: 'default', transition: 'all 0.15s' }}
-                    onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = '#111'; el.style.color = '#f5f0e8'; el.style.borderColor = '#111' }}
-                    onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'transparent'; el.style.color = '#555'; el.style.borderColor = '#ddd6c8' }}
+                    className="font-mono text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 border border-zinc-300 text-zinc-700 hover:text-white hover:bg-black hover:border-black transition-all duration-300 cursor-default rounded-sm"
                   >
                     {skill}
                   </span>
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -391,93 +533,73 @@ function Skills() {
 }
 
 function Projects() {
-  const [hovered, setHovered] = useState<string | null>(null)
-
   return (
-    <section id="projects" style={{ padding: '80px 0', borderTop: '1px solid #ddd6c8' }}>
-      <div className="w-full px-10 md:px-16">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 48, flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <h2 style={{ ...serif, fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 700, color: '#111' }}>Projects</h2>
-          </div>
-          <a href="#" style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#aaa', textDecoration: 'none' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#111')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}
-          >All Projects →</a>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: 20 }}>
-          {PROJECTS.map(p => (
-            <div
-              key={p.id}
-              style={{ display: 'block', background: hovered === p.id ? '#fff' : '#f5f0e8', border: '1px solid #ddd6c8', textDecoration: 'none', transition: 'background 0.18s', overflow: 'hidden' }}
-              onMouseEnter={() => setHovered(p.id)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              {/* Screenshot thumbnail */}
-              <div style={{ width: '100%', height: 160, overflow: 'hidden', borderBottom: '1px solid #ddd6c8', position: 'relative' }}>
-                <img
-                  src={p.image}
-                  alt={p.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block', transition: 'transform 0.4s ease' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.04)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
-                />
-                {/* Censor overlay for company name */}
-                {p.censor && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '16%',
-                    left: '1%',
-                    width: '50%',
-                    height: '22%',
-                    borderRadius: 4,
-                    overflow: 'hidden',
-                  }}>
-                    {/* Blurred copy of area using a pseudo-element approach */}
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'rgba(0, 150, 136, 0.55)',
-                      backdropFilter: 'blur(16px)',
-                      WebkitBackdropFilter: 'blur(16px)',
-                    }} />
-                    {/* Fallback solid for browsers without backdrop-filter */}
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'rgba(0, 140, 130, 0.82)',
-                      mixBlendMode: 'normal',
-                    }} />
-                  </div>
-                )}
-              </div>
-              <div style={{ padding: '20px 20px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ ...mono, fontSize: 24, fontWeight: 700, color: '#e8e0d0' }}>{p.id}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', padding: '4px 10px', border: p.status === 'Live Project' ? '1px solid #111' : '1px solid #ccc', color: p.status === 'Live Project' ? '#111' : '#777', fontWeight: p.status === 'Live Project' ? 700 : 400 }}>{p.status}</span>
-                    <span style={{ ...mono, fontSize: 10, color: '#bbb' }}>{p.year}</span>
-                  </div>
+    <section id="projects" className="bg-black py-20 md:py-32">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12">
+        <motion.h2
+          className="font-serif text-4xl md:text-6xl text-white font-bold tracking-tight mb-16 md:mb-20 text-center md:text-left"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+        >
+          Project
+        </motion.h2>
+
+        <div className="flex flex-col gap-24 md:gap-32">
+          {PROJECTS.map((p, i) => (
+            <div key={p.id} className={`grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center ${i % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
+
+              <motion.div
+                className={`lg:col-span-7 relative group ${i % 2 !== 0 ? 'lg:order-2' : ''}`}
+                initial="hidden" whileInView="visible" viewport={viewportConfig} variants={scaleVariants}
+              >
+                <div className="aspect-[16/10] overflow-hidden rounded-sm relative bg-zinc-900 border border-zinc-800">
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    className="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                  />
+                  {p.censor && (
+                    <div className="absolute bottom-[16%] left-[1%] w-[50%] h-[22%] rounded overflow-hidden">
+                      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+                    </div>
+                  )}
                 </div>
-                <h3 style={{ ...serif, fontSize: 20, fontWeight: 700, color: '#111', marginBottom: 10 }}>
+              </motion.div>
+
+              <motion.div
+                className={`lg:col-span-5 flex flex-col items-center text-center lg:items-start lg:text-left ${i % 2 !== 0 ? 'lg:order-1 lg:items-end lg:text-right' : ''}`}
+                initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+              >
+                <span className="font-mono text-5xl md:text-6xl font-bold text-zinc-800 mb-4 md:mb-6">{p.id}</span>
+                <div className={`flex items-center gap-4 mb-4 md:mb-6 ${i % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
+                  <span className={`font-mono text-[10px] md:text-xs uppercase tracking-widest px-3 py-1 ${p.status === 'Live Project' ? 'bg-white text-black' : 'border border-zinc-700 text-zinc-400'}`}>
+                    {p.status}
+                  </span>
+                  <span className="font-mono text-xs text-zinc-500">{p.year}</span>
+                </div>
+
+                <h3 className="font-serif text-2xl md:text-3xl text-white font-bold mb-4 md:mb-6">
                   {p.link ? (
-                    <a href={p.link} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = '#8a6a30')}
-                      onMouseLeave={e => (e.currentTarget.style.color = 'inherit')}
-                    >
-                      {p.name} ↗
+                    <a href={p.link} target="_blank" rel="noreferrer" className="hover:text-zinc-400 transition-colors">
+                      {p.name} <span className="font-sans text-xl inline-block -rotate-45 ml-2">→</span>
                     </a>
                   ) : (
                     p.name
                   )}
                 </h3>
-                <p style={{ ...sans, fontSize: 13, color: '#777', lineHeight: 1.7, marginBottom: 18, fontWeight: 300 }}>{p.desc}</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+
+                <p className="font-sans text-zinc-400 text-sm md:text-base leading-relaxed font-light mb-6 md:mb-8 max-w-md">
+                  {p.desc}
+                </p>
+
+                <div className={`flex flex-wrap gap-2 justify-center lg:justify-start ${i % 2 !== 0 ? 'lg:justify-end' : ''}`}>
                   {p.tags.map(t => (
-                    <span key={t} style={{ ...mono, fontSize: 10, color: '#aaa', border: '1px solid #e8e0d0', padding: '3px 8px' }}>{t}</span>
+                    <span key={t} className="font-mono text-[10px] md:text-xs text-zinc-300 border border-zinc-700 bg-zinc-900 px-3 py-1 rounded-sm">
+                      {t}
+                    </span>
                   ))}
                 </div>
-              </div>
+              </motion.div>
+
             </div>
           ))}
         </div>
@@ -488,39 +610,39 @@ function Projects() {
 
 function Experience() {
   return (
-    <section id="experience" style={{ padding: '80px 0', borderTop: '1px solid #ddd6c8' }}>
-      <div className="w-full px-10 md:px-16">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 48 }}>
-          <h2 style={{ ...serif, fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 700, color: '#111' }}>Experience</h2>
-        </div>
-        <div style={{ position: 'relative' }}>
-          <div className="hidden sm:block" style={{ position: 'absolute', left: 11, top: 0, bottom: 0, width: 1, background: '#ddd6c8' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            {EXPERIENCE.map((exp, i) => (
-              <div key={i} className="sm:pl-14" style={{ position: 'relative' }}>
-                <div className="hidden sm:flex" style={{ position: 'absolute', left: 0, top: 4, width: 24, height: 24, border: '1px solid #bbb', background: '#f5f0e8', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ width: 6, height: 6, background: '#111', display: 'block' }} />
-                </div>
-                <div
-                  style={{ border: '1px solid #ddd6c8', padding: '24px', background: '#fdfaf5', transition: 'background 0.18s, border-color 0.18s' }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = '#fff'; el.style.borderColor = '#bbb' }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = '#fdfaf5'; el.style.borderColor = '#ddd6c8' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
-                    <h3 style={{ ...sans, fontSize: 16, fontWeight: 600, color: '#111' }}>{exp.role}</h3>
-                    <span style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', border: '1px solid #ddd6c8', padding: '4px 10px', color: '#aaa', whiteSpace: 'nowrap' }}>{exp.period}</span>
-                  </div>
-                  <div style={{ ...mono, fontSize: 11, color: '#888', marginBottom: 10 }}>{exp.company}</div>
-                  <p style={{ ...sans, fontSize: 13, color: '#777', lineHeight: 1.7, marginBottom: 14, fontWeight: 300 }}>{exp.desc}</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                    {exp.tech.map(t => (
-                      <span key={t} style={{ ...mono, fontSize: 10, color: '#aaa', border: '1px solid #e8e0d0', padding: '3px 8px' }}>{t}</span>
-                    ))}
-                  </div>
-                </div>
+    <section id="experience" className="bg-white py-20 md:py-32">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16">
+        <motion.div className="lg:col-span-4 text-center lg:text-left" initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}>
+          <h2 className="font-serif text-4xl md:text-5xl text-black font-bold tracking-tight mb-4 md:mb-8">Experience</h2>
+          <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500 leading-relaxed">
+            Professional journey and roles.
+          </p>
+        </motion.div>
+
+        <div className="lg:col-span-8 flex flex-col gap-10 md:gap-12">
+          {EXPERIENCE.map((exp, i) => (
+            <motion.div
+              key={i} className="group border-b border-zinc-200 pb-10 md:pb-12 last:border-0 last:pb-0"
+              initial="hidden" whileInView="visible" viewport={viewportConfig}
+              variants={{ hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, delay: i * 0.1 } } }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 md:gap-4 mb-2 md:mb-4 text-center sm:text-left">
+                <h3 className="font-serif text-xl md:text-2xl text-black font-medium group-hover:text-zinc-600 transition-colors">{exp.role}</h3>
+                <span className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-zinc-500">{exp.period}</span>
               </div>
-            ))}
-          </div>
+              <div className="font-mono text-xs md:text-sm text-zinc-500 font-bold mb-4 md:mb-6 text-center sm:text-left">{exp.company}</div>
+              <p className="font-sans text-zinc-700 text-sm md:text-base leading-relaxed font-light mb-6 md:mb-8 max-w-2xl text-center sm:text-left">
+                {exp.desc}
+              </p>
+              <div className="flex flex-wrap gap-2 md:gap-3 justify-center sm:justify-start">
+                {exp.tech.map(t => (
+                  <span key={t} className="font-mono text-[10px] md:text-xs text-black border border-zinc-300 px-3 py-1.5 rounded-sm hover:bg-black hover:text-white transition-colors cursor-default">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
@@ -529,20 +651,29 @@ function Experience() {
 
 function Research() {
   return (
-    <section id="research" style={{ padding: '80px 0', borderTop: '1px solid #ddd6c8' }}>
-      <div className="w-full px-10 md:px-16">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 48 }}>
-          <h2 style={{ ...serif, fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 700, color: '#111' }}>Research</h2>
-        </div>
+    <section id="research" className="bg-zinc-50 py-20 md:py-32 border-t border-zinc-200">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12">
+        <motion.h2
+          className="font-serif text-4xl md:text-5xl text-black font-bold tracking-tight mb-12 md:mb-16 text-center md:text-left"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+        >
+          Research & Academics
+        </motion.h2>
 
-        <div style={{ border: '1px solid #ddd6c8', background: '#fdfaf5', padding: '36px' }}>
-          {/* Title */}
-          <h3 style={{ ...serif, fontSize: 22, fontWeight: 700, color: '#111', marginBottom: 20 }}>
-            Fabric Production Failure Classification
-            <span style={{ ...mono, fontSize: 11, fontWeight: 400, color: '#b89a5e', marginLeft: 12 }}>Hybrid Machine Learning</span>
-          </h3>
+        <motion.div
+          className="bg-white border border-zinc-200 p-6 md:p-16 rounded-sm hover:border-black transition-colors duration-500 shadow-sm hover:shadow-md"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-8 md:mb-12 border-b border-zinc-200 pb-6 md:pb-8 text-center md:text-left">
+            <h3 className="font-serif text-xl md:text-3xl text-black font-bold">
+              Fabric Production Failure Classification
+            </h3>
+            <span className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-white bg-black px-3 py-1.5 rounded-sm shrink-0">
+              Hybrid Machine Learning
+            </span>
+          </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8 md:gap-y-12">
             {[
               {
                 label: 'Background',
@@ -550,36 +681,167 @@ function Research() {
               },
               {
                 label: 'Problem',
-                text: 'The real-world dataset exhibited extreme class imbalance and ambiguous categorical features, causing the baseline model (standard Naïve Bayes) to achieve only 24% accuracy.',
+                text: 'The real-world dataset exhibited extreme class imbalance and ambiguous categorical features, causing the baseline Naïve Bayes model to achieve only 24% accuracy.',
               },
               {
                 label: 'Approach',
-                text: 'Pre-processing & label encoding of categorical features (pattern, color, batch, quality). Meta-feature extraction by combining Multinomial Naïve Bayes posterior probabilities with original features (stacking). Class imbalance addressed via SMOTE. Random Forest ensemble used as the final meta-classifier.',
+                text: 'Pre-processing & label encoding of categorical features. Meta-feature extraction via stacking Multinomial Naïve Bayes posterior probabilities. Class imbalance addressed via SMOTE. Random Forest used as the final meta-classifier.',
               },
               {
                 label: 'Key Results',
                 text: 'Overall accuracy improved from 24% to 57%. Significant gains in minority classes — the "Mold Stain" class achieved Precision 1.00 and F1-Score 0.75.',
               },
-            ].map(item => (
-              <div key={item.label} style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-                <span style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#b89a5e', width: 80, flexShrink: 0, paddingTop: 2 }}>{item.label}</span>
-                <p style={{ ...sans, fontSize: 13, color: '#666', lineHeight: 1.75, fontWeight: 300, flex: 1 }}>{item.text}</p>
-              </div>
+            ].map((item, index) => (
+              <motion.div
+                key={item.label} className="flex flex-col gap-2 md:gap-3 text-center md:text-left"
+                initial="hidden" whileInView="visible" viewport={viewportConfig}
+                variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0, transition: { duration: 0.5, delay: index * 0.1 } } }}
+              >
+                <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500 font-bold">{item.label}</span>
+                <p className="font-sans text-zinc-700 text-sm md:text-base leading-relaxed">{item.text}</p>
+              </motion.div>
             ))}
+          </div>
 
-            {/* Tech tags */}
-            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-              <span style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#b89a5e', width: 80, flexShrink: 0, paddingTop: 6 }}>Tech</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {['Python', 'Scikit-learn', 'SMOTE', 'Pandas', 'Matplotlib', 'Seaborn'].map(t => (
-                  <span key={t} style={{ ...mono, fontSize: 10, color: '#888', border: '1px solid #ddd6c8', padding: '4px 10px' }}>{t}</span>
-                ))}
-              </div>
+          <div className="mt-12 md:mt-16 pt-6 md:pt-8 border-t border-zinc-200 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 md:gap-6">
+            <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500 font-bold">Stack</span>
+            <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+              {['Python', 'Scikit-learn', 'SMOTE', 'Pandas', 'Matplotlib', 'Seaborn'].map(t => (
+                <span key={t} className="font-mono text-[10px] md:text-xs text-black border border-zinc-300 px-3 py-1 rounded-sm">{t}</span>
+              ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
+  )
+}
+
+function ContactBackground() {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let width = canvas.width = canvas.clientWidth
+    let height = canvas.height = canvas.clientHeight
+
+    // Elements
+    const stars: { x: number; y: number; size: number; speed: number }[] = []
+    for (let i = 0; i < (width < 768 ? 30 : 80); i++) {
+      stars.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 2,
+        speed: Math.random() * 0.5 + 0.1
+      })
+    }
+
+    let animationFrameId: number
+
+    const render = () => {
+      if (!canvas) return
+
+      if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+        width = canvas.width = canvas.clientWidth
+        height = canvas.height = canvas.clientHeight
+      }
+
+      ctx.clearRect(0, 0, width, height)
+
+      // --- Draw Gemini Constellation ---
+      const isMobile = width < 768
+      const geminiCx = isMobile ? width * 0.5 : width * 0.8
+      const geminiCy = isMobile ? height * 0.5 : height * 0.5
+      const gScale = Math.max(0.5, Math.min(width, height) / 800)
+
+      const geminiPoints = [
+        { x: -40, y: -120, name: 'Castor' },
+        { x: 40, y: -100, name: 'Pollux' },
+        { x: -50, y: -50 },
+        { x: 20, y: -40 },
+        { x: -60, y: 30 },
+        { x: 10, y: 40 },
+        { x: -80, y: 110 },
+        { x: -10, y: 120 },
+        { x: -100, y: -30 },
+        { x: 70, y: -20 },
+      ]
+
+      const geminiLines = [
+        [0, 2], [2, 4], [4, 6],
+        [1, 3], [3, 5], [5, 7],
+        [4, 5],
+        [2, 8], [3, 9]
+      ]
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'
+      ctx.lineWidth = 1.5
+      geminiLines.forEach(([i, j]) => {
+        const p1 = geminiPoints[i]
+        const p2 = geminiPoints[j]
+        ctx.beginPath()
+        ctx.moveTo(geminiCx + p1.x * gScale, geminiCy + p1.y * gScale)
+        ctx.lineTo(geminiCx + p2.x * gScale, geminiCy + p2.y * gScale)
+        ctx.stroke()
+      })
+
+      const pulse = Math.sin(Date.now() * 0.002) * 0.3 + 0.7
+      geminiPoints.forEach(p => {
+        ctx.beginPath()
+        const r = p.name ? 5 * gScale : 2.5 * gScale
+        ctx.arc(geminiCx + p.x * gScale, geminiCy + p.y * gScale, r, 0, Math.PI * 2)
+        ctx.fillStyle = p.name ? `rgba(255, 255, 255, ${pulse})` : 'rgba(255, 255, 255, 0.4)'
+        ctx.fill()
+
+        if (p.name) {
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.6)'
+          ctx.shadowBlur = 10
+          ctx.fill()
+          ctx.shadowBlur = 0
+        }
+      })
+
+      // Draw Stars
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+      stars.forEach(star => {
+        ctx.beginPath()
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+        ctx.fill()
+        star.y -= star.speed
+        if (star.y < 0) {
+          star.y = height
+          star.x = Math.random() * width
+        }
+      })
+
+      animationFrameId = requestAnimationFrame(render)
+    }
+
+    render()
+
+    const handleResize = () => {
+      if (canvasRef.current) {
+        width = canvas.width = canvasRef.current.clientWidth
+        height = canvas.height = canvasRef.current.clientHeight
+      }
+    }
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      cancelAnimationFrame(animationFrameId)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 z-0 w-full h-full pointer-events-none"
+    />
   )
 }
 
@@ -591,96 +853,104 @@ function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-
-    // TODO: Ganti "YOUR_ACCESS_KEY_HERE" dengan Access Key dari web3forms.com
-    const object = {
-      ...form,
-      access_key: "308695aa-372d-4016-9054-613e781312ce"
-    }
-    const json = JSON.stringify(object)
+    const object = { ...form, access_key: "308695aa-372d-4016-9054-613e781312ce" }
 
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        },
-        body: json
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(object)
       })
       const result = await res.json()
       if (result.success) {
         setSent(true)
-        setForm({ name: '', email: '', message: '' }) // Reset form
+        setForm({ name: '', email: '', message: '' })
       }
     } catch (error) {
       console.log(error)
-      alert("Terjadi kesalahan saat mengirim pesan.")
+      alert("Error sending message.")
     } finally {
       setIsSubmitting(false)
     }
   }
-  const inputStyle: React.CSSProperties = {
-    ...mono, width: '100%', background: '#fdfaf5', border: '1px solid #ddd6c8',
-    padding: '12px 14px', fontSize: 13, color: '#111', outline: 'none', transition: 'border-color 0.15s',
-  }
 
   return (
-    <section id="contact" style={{ padding: '80px 0', borderTop: '1px solid #ddd6c8' }}>
-      <div className="w-full px-10 md:px-16">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 48 }}>
-          <h2 style={{ ...serif, fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 700, color: '#111' }}>Contact</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 48, alignItems: 'start' }}>
-          <div>
-            <p style={{ ...sans, color: '#777', fontSize: 15, lineHeight: 1.8, marginBottom: 36, fontWeight: 300 }}>
-              Open to full-time roles and select consulting. I respond within 24 hours.
+    <section id="contact" className="bg-[#050b14] py-20 md:py-32 relative overflow-hidden">
+      <ContactBackground />
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12 relative z-20">
+        <motion.h2
+          className="font-serif text-4xl md:text-6xl text-white font-bold tracking-tight mb-16 md:mb-20 text-center"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+        >
+          Let's build something.
+        </motion.h2>
+
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
+          <motion.div
+            className="flex flex-col gap-8 md:gap-10 text-center md:text-left"
+            initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+          >
+            <p className="font-sans text-zinc-400 text-base md:text-lg leading-relaxed font-light">
+              I am currently open to full-time roles and selective freelance opportunities.
+              Drop a message, and I'll get back to you within 24 hours.
             </p>
-            {[
-              { k: 'Email', v: 'giyanraditya024@gmail.com', href: 'mailto:giyanraditya024@gmail.com' },
-              { k: 'LinkedIn', v: 'linkedin.com/in/giyan-radhietya', href: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/' },
-              { k: 'Instagram', v: 'instagram.com/giyanradh', href: 'https://www.instagram.com/giyanradh/' },
-              { k: 'Location', v: 'Bandung, Indonesia (Remote-friendly)', href: null },
-              { k: 'Timezone', v: 'WIB (UTC+7)', href: null },
-            ].map(({ k, v, href }) => (
-              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '14px 0', borderBottom: '1px solid #e8e0d0' }}>
-                <span style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#bbb', width: 80, flexShrink: 0 }}>{k}</span>
-                {href ? (
-                  <a href={href} target="_blank" rel="noreferrer" style={{ ...sans, fontSize: 13, color: '#b89a5e', textDecoration: 'none', borderBottom: '1px solid #e8c87a' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#8a6a30')}
-                    onMouseLeave={e => (e.currentTarget.style.color = '#b89a5e')}
-                  >{v}</a>
-                ) : (
-                  <span style={{ ...sans, fontSize: 13, color: '#555' }}>{v}</span>
-                )}
-              </div>
-            ))}
-          </div>
-          <div>
+
+            <div className="flex flex-col gap-4 md:gap-6">
+              {[
+                { k: 'Email', v: 'giyanraditya024@gmail.com', href: 'mailto:giyanraditya024@gmail.com' },
+                { k: 'LinkedIn', v: 'linkedin.com/in/giyan-radhietya', href: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/' },
+                { k: 'Instagram', v: '@giyanradh', href: 'https://www.instagram.com/giyanradh/' },
+                { k: 'Location', v: 'Bandung, Indonesia', href: null },
+              ].map(({ k, v, href }) => (
+                <div key={k} className="flex flex-col gap-1 md:gap-2">
+                  <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-600">{k}</span>
+                  {href ? (
+                    <a href={href} target="_blank" rel="noreferrer" className="font-sans text-sm md:text-base text-zinc-300 hover:text-white transition-colors break-all md:break-normal">
+                      {v}
+                    </a>
+                  ) : (
+                    <span className="font-sans text-sm md:text-base text-zinc-300">{v}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+          >
             {sent ? (
-              <div style={{ border: '1px solid #ddd6c8', padding: '48px 28px', textAlign: 'center', background: '#fdfaf5' }}>
-                <div style={{ ...serif, fontSize: 36, color: '#111', marginBottom: 10 }}>✓</div>
-                <p style={{ ...sans, fontWeight: 600, color: '#111', marginBottom: 6 }}>Message sent</p>
-                <p style={{ ...mono, fontSize: 11, color: '#aaa' }}>I'll reply within 24 hours.</p>
+              <div className="h-full border border-zinc-800 bg-zinc-900/50 p-8 md:p-12 flex flex-col items-center justify-center text-center rounded-sm">
+                <div className="font-serif text-4xl md:text-5xl text-white mb-4 md:mb-6">✓</div>
+                <p className="font-sans text-lg md:text-xl text-white font-medium mb-2">Message Sent</p>
+                <p className="font-mono text-[10px] md:text-xs text-zinc-500">I will reply shortly.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                {[{ key: 'name', label: 'Name', type: 'text', placeholder: 'Your name' }, { key: 'email', label: 'Email', type: 'email', placeholder: 'your@email.com' }].map(f => (
-                  <div key={f.key}>
-                    <label style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#aaa', display: 'block', marginBottom: 8 }}>{f.label}</label>
-                    <input type={f.type} required placeholder={f.placeholder} value={form[f.key as 'name' | 'email']} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} style={inputStyle} onFocus={e => (e.target.style.borderColor = '#111')} onBlur={e => (e.target.style.borderColor = '#ddd6c8')} />
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                  <div className="flex flex-col gap-2 md:gap-3">
+                    <label className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500">Name</label>
+                    <input required type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                      className="bg-transparent border-b border-zinc-700 p-2 md:p-3 text-white focus:outline-none focus:border-white transition-colors font-sans text-sm rounded-none" />
                   </div>
-                ))}
-                <div>
-                  <label style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#aaa', display: 'block', marginBottom: 8 }}>Message</label>
-                  <textarea required rows={5} placeholder="Tell me about your project..." value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))} style={{ ...inputStyle, resize: 'none' }} onFocus={e => (e.target.style.borderColor = '#111')} onBlur={e => (e.target.style.borderColor = '#ddd6c8')} />
+                  <div className="flex flex-col gap-2 md:gap-3">
+                    <label className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500">Email</label>
+                    <input required type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                      className="bg-transparent border-b border-zinc-700 p-2 md:p-3 text-white focus:outline-none focus:border-white transition-colors font-sans text-sm rounded-none" />
+                  </div>
                 </div>
-                <button type="submit" disabled={isSubmitting} style={{ ...mono, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.18em', padding: '16px', background: isSubmitting ? '#555' : '#111', color: '#f5f0e8', border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={e => { if (!isSubmitting) (e.currentTarget as HTMLElement).style.background = '#333' }} onMouseLeave={e => { if (!isSubmitting) (e.currentTarget as HTMLElement).style.background = '#111' }}>
-                  {isSubmitting ? 'SENDING...' : 'SEND MESSAGE'}
+                <div className="flex flex-col gap-2 md:gap-3">
+                  <label className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500">Message</label>
+                  <textarea required rows={4} value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
+                    className="bg-transparent border-b border-zinc-700 p-2 md:p-3 text-white focus:outline-none focus:border-white transition-colors font-sans text-sm resize-none rounded-none" />
+                </div>
+                <button type="submit" disabled={isSubmitting}
+                  className="mt-4 md:mt-6 font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] py-3 md:py-4 bg-white text-black hover:bg-zinc-200 disabled:opacity-50 transition-colors rounded-sm font-bold w-full">
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -689,17 +959,20 @@ function Contact() {
 
 function Footer() {
   return (
-    <footer style={{ borderTop: '1px solid #ddd6c8', padding: '32px 0' }}>
-      <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: '"Jim Nightshade", cursive', color: '#111', fontSize: 28 }}>G</span>
-        <span style={{ ...mono, fontSize: 10, color: '#888', textAlign: 'center', fontWeight: 700 }}>© 2025 Giyan Radhietya Akmal.</span>
-        <div style={{ display: 'flex', gap: 20 }}>
+    <footer className="bg-black border-t border-zinc-900 py-8 md:py-12">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-6 text-center sm:text-left">
+        <span className="font-serif text-2xl md:text-3xl font-bold text-white tracking-tighter">G.</span>
+        <span className="font-mono text-[10px] md:text-xs text-zinc-600">© 2025 Giyan Radhietya Akmal.</span>
+        <div className="flex gap-6 md:gap-8 justify-center">
           {[
-            { label: 'GitHub', url: 'https://github.com/GiyanRa' },
-            { label: 'LinkedIn', url: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/' },
-            { label: 'Instagram', url: 'https://www.instagram.com/giyanradh/' },
+            { label: 'GH', url: 'https://github.com/GiyanRa' },
+            { label: 'LI', url: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/' },
+            { label: 'IG', url: 'https://www.instagram.com/giyanradh/' },
           ].map(s => (
-            <a key={s.label} href={s.url} target="_blank" rel="noreferrer" style={{ ...mono, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#555', textDecoration: 'none', fontWeight: 700 }} onMouseEnter={e => (e.currentTarget.style.color = '#111')} onMouseLeave={e => (e.currentTarget.style.color = '#555')}>{s.label}</a>
+            <a key={s.label} href={s.url} target="_blank" rel="noreferrer"
+              className="font-mono text-[10px] md:text-xs text-zinc-500 hover:text-white transition-colors">
+              {s.label}
+            </a>
           ))}
         </div>
       </div>
@@ -709,7 +982,7 @@ function Footer() {
 
 export default function App() {
   return (
-    <div style={{ background: '#f5f0e8', minHeight: '100vh' }}>
+    <div className="bg-white min-h-screen selection:bg-black selection:text-white">
       <NavBar />
       <Hero />
       <Stats />

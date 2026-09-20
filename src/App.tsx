@@ -873,8 +873,8 @@ function Hero() {
 function Stats() {
   const items = [
     { value: '2+', label: 'Years Experience' },
-    { value: '3+', label: 'Key Projects' },
-    { value: '2025', label: 'B.Sc Informatics' },
+    { value: `${PROJECTS.length}+`, label: 'Key Projects' },
+    { value: '2025', label: 'S.Kom Informatics' },
   ]
 
   return (

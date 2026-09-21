@@ -39,21 +39,29 @@ const PROJECTS: ProjectData[] = [
     link: 'https://fatika-portofolio.vercel.app/',
   },
   {
-    id: '02', name: 'BookStore', year: '2026', status: 'Web App',
+    id: '02', name: 'Pixel Dungeon', year: '2026', status: 'Live Project',
+    desc: 'A retro-style pixel art dungeon game built with pure JavaScript and HTML5 Canvas. Features a hero who battles enemies across procedurally inspired floors, complete with attack animations, score tracking, and classic arcade gameplay.',
+    tags: ['JavaScript', 'HTML5 Canvas', 'Game Dev', 'Vercel'],
+    image: '/pixeldungeon.jpg',
+    censor: false,
+    link: 'https://pixel-dungeon-wheat.vercel.app/',
+  },
+  {
+    id: '03', name: 'BookStore', year: '2026', status: 'Web App',
     desc: 'An end-to-end e-commerce platform featuring product browsing, advanced search, discount management, blog integration, and a comprehensive admin panel. Engineered for high-volume catalog management and active concurrent readership.',
     tags: ['Laravel', 'PHP', 'MySQL', 'Tailwind CSS', 'JavaScript'],
     image: bookstoreImg,
     censor: false,
   },
   {
-    id: '03', name: 'JourneyScape', year: '2026', status: 'Web App',
+    id: '04', name: 'JourneyScape', year: '2026', status: 'Web App',
     desc: 'Travel and tourism platform offering tour packages, WhatsApp-based booking, vehicle rental services, and curated destination highlights across Indonesia and abroad.',
     tags: ['React', 'TypeScript', 'Tailwind CSS', 'WhatsApp API'],
     image: journeyscapeImg,
     censor: false,
   },
   {
-    id: '04', name: 'Production Recording System', year: '2024', status: 'Internal App',
+    id: '05', name: 'Production Recording System', year: '2024', status: 'Internal App',
     desc: 'Desktop-based application developed during internship to digitize factory floor data entry, track production output, and generate daily manufacturing reports.',
     tags: ['Java', 'MySQL', 'Desktop App', 'Database'],
     image: indotexImg,
@@ -165,24 +173,38 @@ function useActiveSection() {
   const [active, setActive] = useState('')
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActive(entry.target.id)
+    const handleScroll = () => {
+      let current = ''
+      const scrollPos = window.scrollY + window.innerHeight / 3 // Trigger point at 33% from top
+
+      NAV_LINKS.forEach((link) => {
+        const el = document.getElementById(link)
+        if (el) {
+          const offsetTop = el.offsetTop
+          const offsetBottom = offsetTop + el.offsetHeight
+
+          if (scrollPos >= offsetTop && scrollPos < offsetBottom) {
+            current = link
           }
-        })
-      },
-      { threshold: 0.3, rootMargin: '-80px 0px -40% 0px' }
-    )
+        }
+      })
+      
+      // Handle the case when scrolled to the very bottom
+      if ((window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight - 100) {
+        current = NAV_LINKS[NAV_LINKS.length - 1]
+      }
 
-    NAV_LINKS.forEach((link) => {
-      const el = document.getElementById(link)
-      if (el) observer.observe(el)
-    })
+      if (current !== active) {
+        setActive(current)
+      }
+    }
 
-    return () => observer.disconnect()
-  }, [])
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    // Initial check
+    setTimeout(handleScroll, 100)
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [active])
 
   return active
 }
@@ -643,6 +665,9 @@ function NavBar() {
           {/* Logo with subtle glow */}
           <motion.span
             className={`font-serif text-2xl md:text-3xl font-bold tracking-tighter transition-all duration-500 relative z-50 ${scrolled && !menuOpen ? 'text-[#EFFF4F]' : 'text-white'}`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             whileHover={{ scale: 1.1 }}
             style={{ textShadow: scrolled ? '0 0 20px rgba(239, 255, 79, 0.3)' : 'none' }}
           >
@@ -651,11 +676,19 @@ function NavBar() {
 
           {/* Desktop nav with active indicator */}
           <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-            {NAV_LINKS.map(l => (
+            {NAV_LINKS.map((l, index) => (
               <motion.a
                 key={l}
                 href={`#${l}`}
-                whileHover={{ scale: 1.15, y: -3 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.6, 
+                  delay: 0.1 + (index * 0.1), // Stagger delay for wave effect
+                  type: 'spring', 
+                  stiffness: 80 
+                }}
+                whileHover={{ scale: 1.15, y: -5, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
                 whileTap={{ scale: 0.95 }}
                 className="relative inline-block font-mono text-xs uppercase tracking-[0.2em] transition-colors duration-300"
               >
@@ -677,6 +710,9 @@ function NavBar() {
           {/* CTA button */}
           <motion.a
             href="#contact"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.8 }} // Appears after the wave
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`hidden md:block font-mono text-xs uppercase tracking-[0.15em] px-6 py-3 border transition-all duration-500 ${scrolled && !menuOpen

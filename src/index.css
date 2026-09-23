@@ -337,7 +337,7 @@ body::after {
 .giyan-outline-letter {
   display: inline-block;
   font-family: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
-  font-size: clamp(1.85rem, 6.6vw, 3.2rem);
+  font-size: clamp(1.85rem, 6.6vw, 2.9rem);
   font-weight: 800;
   line-height: 0.9;
   letter-spacing: 0.04em;
@@ -350,25 +350,25 @@ body::after {
 
 @media (min-width: 640px) {
   .giyan-outline-letter {
-    font-size: clamp(3.0rem, 7.5vw, 5.6rem);
-    -webkit-text-stroke: 2.2px #ffffff;
-    letter-spacing: 0.06em;
+    font-size: clamp(2.6rem, 6.0vw, 3.8rem);
+    -webkit-text-stroke: 2px #ffffff;
+    letter-spacing: 0.05em;
   }
 }
 
 @media (min-width: 1024px) {
   .giyan-outline-letter {
-    font-size: clamp(4.6rem, 8.0vw, 8.2rem);
-    -webkit-text-stroke: 2.6px #ffffff;
-    letter-spacing: 0.08em;
+    font-size: clamp(3.2rem, 4.4vw, 4.6rem);
+    -webkit-text-stroke: 2.4px #ffffff;
+    letter-spacing: 0.06em;
   }
 }
 
 @media (min-width: 1536px) {
   .giyan-outline-letter {
-    font-size: clamp(6.0rem, 8.4vw, 9.8rem);
-    -webkit-text-stroke: 3px #ffffff;
-    letter-spacing: 0.08em;
+    font-size: clamp(3.8rem, 4.6vw, 5.2rem);
+    -webkit-text-stroke: 2.8px #ffffff;
+    letter-spacing: 0.07em;
   }
 }
 
@@ -376,7 +376,7 @@ body::after {
 .radh-solid-letter {
   display: inline-block;
   font-family: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
-  font-size: clamp(1.85rem, 6.6vw, 3.2rem);
+  font-size: clamp(1.85rem, 6.6vw, 2.9rem);
   font-weight: 800;
   line-height: 0.9;
   letter-spacing: 0.04em;
@@ -387,22 +387,22 @@ body::after {
 
 @media (min-width: 640px) {
   .radh-solid-letter {
-    font-size: clamp(3.0rem, 7.5vw, 5.6rem);
-    letter-spacing: 0.06em;
+    font-size: clamp(2.6rem, 6.0vw, 3.8rem);
+    letter-spacing: 0.05em;
   }
 }
 
 @media (min-width: 1024px) {
   .radh-solid-letter {
-    font-size: clamp(4.6rem, 8.0vw, 8.2rem);
-    letter-spacing: 0.08em;
+    font-size: clamp(3.2rem, 4.4vw, 4.6rem);
+    letter-spacing: 0.06em;
   }
 }
 
 @media (min-width: 1536px) {
   .radh-solid-letter {
-    font-size: clamp(6.0rem, 8.4vw, 9.8rem);
-    letter-spacing: 0.08em;
+    font-size: clamp(3.8rem, 4.6vw, 5.2rem);
+    letter-spacing: 0.07em;
   }
 }
 
@@ -494,6 +494,7 @@ body::after {
   position: relative;
   z-index: 10;
   height: 100%;
+  width: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -504,7 +505,8 @@ body::after {
 .sp-wrap {
   position: relative;
   height: 100%;
-  max-width: min(100%, clamp(260px, 75vw, 440px));
+  width: 100%;
+  max-width: min(100%, clamp(260px, 75vw, 520px));
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -516,7 +518,7 @@ body::after {
   display: block;
   height: 100%;
   width: auto;
-  max-width: min(100%, clamp(260px, 75vw, 440px));
+  max-width: 100%;
   object-fit: contain;
   object-position: bottom center;
   user-select: none;

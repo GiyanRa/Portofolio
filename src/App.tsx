@@ -545,7 +545,7 @@ function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-[100svh] flex items-center bg-[#0d1117] overflow-hidden"
+      className="relative min-h-[100svh] lg:min-h-0 lg:h-[100svh] lg:max-h-[960px] 2xl:max-h-[1100px] flex items-center bg-[#0d1117] overflow-hidden"
     >
       {/* Subtle grid background */}
       <div className="absolute inset-0 z-0 hero-grid-bg" />
@@ -556,13 +556,13 @@ function Hero() {
       {/* ── Center photo & Behind-Head Name ── */}
       <div className="absolute inset-0 z-10 flex items-end justify-center pointer-events-none">
         <motion.div
-          className="relative h-[56svh] sm:h-[70svh] md:h-[86%] flex items-end justify-center pointer-events-auto"
+          className="relative h-[56svh] sm:h-[70svh] md:h-[82svh] max-h-[620px] 2xl:max-h-[720px] aspect-[427/585] max-w-[88vw] flex items-end justify-center pointer-events-auto"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
         >
           {/* ── GIYAN RADH Name: Positioned directly behind head, hair overlapping bottom of letters ── */}
-          <div className="absolute top-2 sm:top-4 md:top-6 lg:top-7 left-1/2 -translate-x-1/2 z-[5] pointer-events-none select-none flex justify-center items-center">
+          <div className="absolute top-[2%] sm:top-[3%] md:top-[4%] left-1/2 -translate-x-1/2 z-[5] pointer-events-none select-none flex justify-center items-center w-max">
             <GiyanText />
           </div>
 
@@ -570,7 +570,7 @@ function Hero() {
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[260px] sm:w-[340px] h-[340px] sm:h-[500px] bg-gradient-to-t from-white/5 via-transparent to-transparent blur-3xl pointer-events-none" />
 
           {/* Spotlight Photo (z-10, hair sits in front of the letters) */}
-          <div className="relative z-10 h-full flex items-end justify-center">
+          <div className="relative z-10 h-full w-full flex items-end justify-center">
             <SpotlightPhoto
               src={profilePhoto}
               alt="Giyan Radhietya"
@@ -585,9 +585,9 @@ function Hero() {
       </div>
 
       {/* ── Left info panel (shifted down on desktop, perfectly balanced above photo on mobile) ── */}
-      <div className="relative z-20 w-full max-w-[1400px] mx-auto px-6 md:px-16 flex items-start md:items-center min-h-[100svh] pt-20 sm:pt-28 md:pt-0 pb-8 pointer-events-none">
+      <div className="relative z-20 w-full max-w-[1400px] mx-auto px-6 md:px-16 flex items-start md:items-center min-h-[100svh] lg:min-h-0 lg:h-full pt-20 sm:pt-28 md:pt-0 pb-8 pointer-events-none">
         <motion.div
-          className="flex flex-col items-start max-w-[320px] sm:max-w-sm pointer-events-auto md:translate-y-16 lg:translate-y-20"
+          className="flex flex-col items-start max-w-[320px] sm:max-w-sm pointer-events-auto md:translate-y-8 lg:translate-y-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -648,7 +648,7 @@ function Hero() {
 
       {/* ── Right social pills (Desktop, shifted down) ── */}
       <motion.div
-        className="absolute right-6 md:right-12 top-[60%] lg:top-[62%] -translate-y-1/2 z-20 hidden md:flex flex-col items-end gap-3"
+        className="absolute right-6 md:right-12 top-[55%] lg:top-[58%] -translate-y-1/2 z-20 hidden md:flex flex-col items-end gap-3"
         initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 1.0 }}

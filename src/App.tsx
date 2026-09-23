@@ -584,8 +584,8 @@ function Hero() {
         </motion.div>
       </div>
 
-      {/* ── Left info panel (shifted down on desktop, perfectly balanced above photo on mobile) ── */}
-      <div className="relative z-20 w-full max-w-[1400px] mx-auto px-6 md:px-16 flex items-start md:items-center min-h-[100svh] lg:min-h-0 lg:h-full pt-20 sm:pt-28 md:pt-0 pb-8 pointer-events-none">
+      {/* ── Content container (Left info panel + Right social pills, constrained within max-w-[1400px]) ── */}
+      <div className="relative z-20 w-full max-w-[1400px] mx-auto px-6 md:px-16 flex items-start md:items-center justify-between min-h-[100svh] lg:min-h-0 lg:h-full pt-20 sm:pt-28 md:pt-0 pb-8 pointer-events-none">
         <motion.div
           className="flex flex-col items-start max-w-[320px] sm:max-w-sm pointer-events-auto md:translate-y-8 lg:translate-y-12"
           initial={{ opacity: 0, y: 20 }}
@@ -644,34 +644,34 @@ function Hero() {
             </div>
           </div>
         </motion.div>
-      </div>
 
-      {/* ── Right social pills (Desktop, shifted down) ── */}
-      <motion.div
-        className="absolute right-6 md:right-12 top-[55%] lg:top-[58%] -translate-y-1/2 z-20 hidden md:flex flex-col items-end gap-3"
-        initial={{ opacity: 0, x: 30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, delay: 1.0 }}
-      >
-        {socialLinks.map((s, i) => (
-          <motion.a
-            key={s.label}
-            href={s.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/35 text-zinc-300 hover:text-white transition-all duration-300 text-xs font-medium backdrop-blur-sm shadow-sm"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.1 + i * 0.1, duration: 0.4 }}
-            whileHover={{ x: -4 }}
-          >
-            <span className="w-4 h-4 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
-              {s.icon}
-            </span>
-            <span className="tracking-wide">{s.label}</span>
-          </motion.a>
-        ))}
-      </motion.div>
+        {/* ── Right social pills (Desktop) — anchored within max-w-[1400px] ── */}
+        <motion.div
+          className="pointer-events-auto hidden md:flex flex-col items-end gap-3 md:translate-y-8 lg:translate-y-12"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 1.0 }}
+        >
+          {socialLinks.map((s, i) => (
+            <motion.a
+              key={s.label}
+              href={s.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/35 text-zinc-300 hover:text-white transition-all duration-300 text-xs font-medium backdrop-blur-sm shadow-sm"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.1 + i * 0.1, duration: 0.4 }}
+              whileHover={{ x: -4 }}
+            >
+              <span className="w-4 h-4 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
+                {s.icon}
+              </span>
+              <span className="tracking-wide">{s.label}</span>
+            </motion.a>
+          ))}
+        </motion.div>
+      </div>
 
       {/* Scroll indicator */}
       <motion.div

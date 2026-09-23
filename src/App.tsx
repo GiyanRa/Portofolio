@@ -91,13 +91,13 @@ const scaleVariants: Variants = {
 }
 
 const slideLeftVariants: Variants = {
-  hidden: { opacity: 0, x: -60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+  hidden: { opacity: 0, x: -24, y: 12 },
+  visible: { opacity: 1, x: 0, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
 }
 
 const slideRightVariants: Variants = {
-  hidden: { opacity: 0, x: 60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+  hidden: { opacity: 0, x: 24, y: 12 },
+  visible: { opacity: 1, x: 0, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
 }
 
 const viewportConfig = { once: false, amount: 0.15 }
@@ -700,7 +700,7 @@ function Stats() {
   ]
 
   return (
-    <section id="about" className="bg-[#10131A] py-20 md:py-32 relative dot-pattern">
+    <section id="about" className="bg-[#10131A] py-20 md:py-32 relative dot-pattern overflow-hidden">
       {/* Decorative diagonal line */}
       <div className="absolute top-0 right-0 w-px h-48 bg-gradient-to-b from-[#EFFF4F]/20 to-transparent hidden lg:block" style={{ right: '15%' }} />
 
@@ -853,7 +853,7 @@ function Skills() {
 // ─── Projects ──────────────────────────
 function Projects() {
   return (
-    <section id="projects" className="bg-[#10131A] py-20 md:py-32">
+    <section id="projects" className="bg-[#10131A] py-20 md:py-32 overflow-hidden">
       <div className="max-w-[1200px] mx-auto px-6 md:px-12">
         <motion.div
           className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-16 md:mb-20 text-center md:text-left"
@@ -978,7 +978,7 @@ function Projects() {
 // ─── Experience — Timeline Style ──────────────────────────
 function Experience() {
   return (
-    <section id="experience" className="bg-[#0d1016] py-20 md:py-32">
+    <section id="experience" className="bg-[#0d1016] py-20 md:py-32 overflow-hidden">
       <div className="max-w-[1200px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16">
         <motion.div className="lg:col-span-4 text-center lg:text-left" initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}>
           <div className="flex items-center gap-4 mb-4 justify-center lg:justify-start">
@@ -1050,7 +1050,7 @@ function Experience() {
 // ─── Research ──────────────────────────
 function Research() {
   return (
-    <section id="research" className="bg-[#10131A] py-20 md:py-32 border-t border-zinc-800/30">
+    <section id="research" className="bg-[#10131A] py-20 md:py-32 border-t border-zinc-800/30 overflow-hidden">
       <div className="max-w-[1200px] mx-auto px-6 md:px-12">
         <motion.div
           className="flex items-center gap-4 mb-4 justify-center md:justify-start"
@@ -1438,7 +1438,7 @@ function Contact() {
 // ─── Footer ──────────────────────────
 function Footer() {
   return (
-    <footer className="bg-[#10131A] relative py-8 md:py-12">
+    <footer className="bg-[#10131A] relative py-8 md:py-12 overflow-hidden">
       {/* Gradient top border */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#EFFF4F]/20 to-transparent" />
 
@@ -1488,7 +1488,7 @@ function Footer() {
 // ─── Main App ──────────────────────────
 export default function App() {
   return (
-    <div className="bg-[#10131A] min-h-screen selection:bg-[#EFFF4F] selection:text-[#10131A]">
+    <div className="bg-[#10131A] min-h-screen selection:bg-[#EFFF4F] selection:text-[#10131A] w-full max-w-[100vw] overflow-x-hidden relative">
       <NavBar />
       <Hero />
       <Stats />

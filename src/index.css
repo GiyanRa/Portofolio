@@ -14,9 +14,39 @@
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* ── Smooth scroll ── */
+/* ── Global resets & Prevent Mobile Horizontal Overflow ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html {
   scroll-behavior: smooth;
+  background-color: #10131A;
+  color-scheme: dark;
+  overflow-x: clip;
+  max-width: 100vw;
+  width: 100%;
+}
+
+body {
+  background-color: #10131A;
+  color: #ffffff;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  background-color: #10131A;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+  min-height: 100vh;
 }
 
 /* ── Custom Scrollbar ── */
@@ -48,6 +78,8 @@ body::after {
   content: '';
   position: fixed;
   inset: 0;
+  max-width: 100vw;
+  overflow: hidden;
   z-index: 9999;
   pointer-events: none;
   opacity: 0.025;
@@ -292,6 +324,7 @@ body::after {
   /* Elongated horizontally like the DYMAS ALFIN reference */
   transform: scaleX(1.05);
   transform-origin: center center;
+  max-width: 100%;
 }
 
 @media (min-width: 640px) {
@@ -471,7 +504,7 @@ body::after {
 .sp-wrap {
   position: relative;
   height: 100%;
-  max-width: clamp(280px, 75vw, 440px);
+  max-width: min(100%, clamp(260px, 75vw, 440px));
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -483,7 +516,7 @@ body::after {
   display: block;
   height: 100%;
   width: auto;
-  max-width: clamp(280px, 75vw, 440px);
+  max-width: min(100%, clamp(260px, 75vw, 440px));
   object-fit: contain;
   object-position: bottom center;
   user-select: none;

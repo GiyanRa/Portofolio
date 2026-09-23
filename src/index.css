@@ -8,10 +8,10 @@
 @source '../**/*.ts';
 
 @theme {
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-serif: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-serif: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 /* ── Smooth scroll ── */
@@ -23,13 +23,16 @@ html {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #0a0d14;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #2a2f3a;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #EFFF4F;
 }
@@ -61,49 +64,119 @@ body::after {
 
 /* ── Custom Animations ── */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-5%, -10%); }
-  30% { transform: translate(3%, -15%); }
-  50% { transform: translate(12%, 9%); }
-  70% { transform: translate(9%, 4%); }
-  90% { transform: translate(-1%, 7%); }
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  10% {
+    transform: translate(-5%, -10%);
+  }
+
+  30% {
+    transform: translate(3%, -15%);
+  }
+
+  50% {
+    transform: translate(12%, 9%);
+  }
+
+  70% {
+    transform: translate(9%, 4%);
+  }
+
+  90% {
+    transform: translate(-1%, 7%);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(239, 255, 79, 0.15); }
-  50% { box-shadow: 0 0 40px rgba(239, 255, 79, 0.3); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(239, 255, 79, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(239, 255, 79, 0.3);
+  }
 }
 
 @keyframes cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 @keyframes scroll-bounce {
-  0%, 100% { transform: translateY(0); opacity: 0.6; }
-  50% { transform: translateY(8px); opacity: 1; }
+
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(8px);
+    opacity: 1;
+  }
 }
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes border-shimmer {
-  0% { border-color: rgba(239, 255, 79, 0.1); }
-  50% { border-color: rgba(239, 255, 79, 0.4); }
-  100% { border-color: rgba(239, 255, 79, 0.1); }
+  0% {
+    border-color: rgba(239, 255, 79, 0.1);
+  }
+
+  50% {
+    border-color: rgba(239, 255, 79, 0.4);
+  }
+
+  100% {
+    border-color: rgba(239, 255, 79, 0.1);
+  }
 }
 
 /* ── Utility Classes ── */
@@ -171,6 +244,7 @@ body::after {
 .timeline-line {
   position: relative;
 }
+
 .timeline-line::before {
   content: '';
   position: absolute;
@@ -185,6 +259,7 @@ body::after {
 .glow-ring {
   position: relative;
 }
+
 .glow-ring::before {
   content: '';
   position: absolute;
@@ -195,6 +270,247 @@ body::after {
   opacity: 0;
   transition: opacity 0.7s ease;
 }
+
 .glow-ring:hover::before {
   opacity: 1;
+}
+
+/* ── Hero: Grid Background ── */
+.hero-grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── Hero: Giant Name Typography ── */
+
+.hero-name-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Elongated horizontally like the DYMAS ALFIN reference */
+  transform: scaleX(1.05);
+  transform-origin: center center;
+}
+
+@media (min-width: 640px) {
+  .hero-name-row {
+    transform: scaleX(1.08);
+  }
+}
+
+/* GIYAN — Outline / Stroke text */
+.giyan-outline-letter {
+  display: inline-block;
+  font-family: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
+  font-size: clamp(1.85rem, 6.6vw, 3.2rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  /* Pure crisp, bold outline without color, matching the DYMAS reference */
+  color: transparent;
+  -webkit-text-stroke: 1.5px #ffffff;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .giyan-outline-letter {
+    font-size: clamp(3.0rem, 7.5vw, 5.6rem);
+    -webkit-text-stroke: 2.2px #ffffff;
+    letter-spacing: 0.06em;
+  }
+}
+
+@media (min-width: 1024px) {
+  .giyan-outline-letter {
+    font-size: clamp(4.6rem, 8.0vw, 8.2rem);
+    -webkit-text-stroke: 2.6px #ffffff;
+    letter-spacing: 0.08em;
+  }
+}
+
+@media (min-width: 1536px) {
+  .giyan-outline-letter {
+    font-size: clamp(6.0rem, 8.4vw, 9.8rem);
+    -webkit-text-stroke: 3px #ffffff;
+    letter-spacing: 0.08em;
+  }
+}
+
+/* RADH — Solid fill */
+.radh-solid-letter {
+  display: inline-block;
+  font-family: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
+  font-size: clamp(1.85rem, 6.6vw, 3.2rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ffffff;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .radh-solid-letter {
+    font-size: clamp(3.0rem, 7.5vw, 5.6rem);
+    letter-spacing: 0.06em;
+  }
+}
+
+@media (min-width: 1024px) {
+  .radh-solid-letter {
+    font-size: clamp(4.6rem, 8.0vw, 8.2rem);
+    letter-spacing: 0.08em;
+  }
+}
+
+@media (min-width: 1536px) {
+  .radh-solid-letter {
+    font-size: clamp(6.0rem, 8.4vw, 9.8rem);
+    letter-spacing: 0.08em;
+  }
+}
+
+.name-word-space {
+  display: inline-block;
+  width: clamp(0.6rem, 2vw, 2.4rem);
+}
+
+/* ── GIYAN — Wipe Disappear & Reappear Loop Container ── */
+.giyan-wipe-container {
+  position: relative;
+  display: inline-block;
+}
+
+.giyan-wipe-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  /* 
+    Gradient mask with soft blur edges (600% width):
+    - 0% to 20%: Solid (revealed)
+    - 20% to 38%: Soft fade transition to Transparent (wipe disappear)
+    - 38% to 60%: Fully Transparent (hidden)
+    - 60% to 78%: Soft fade transition to Solid (wipe reappear)
+    - 78% to 100%: Solid (revealed)
+  */
+  mask-image: linear-gradient(90deg,
+      #000 0%,
+      #000 20%,
+      rgba(0, 0, 0, 0) 38%,
+      rgba(0, 0, 0, 0) 60%,
+      #000 78%,
+      #000 100%);
+  -webkit-mask-image: linear-gradient(90deg,
+      #000 0%,
+      #000 20%,
+      rgba(0, 0, 0, 0) 38%,
+      rgba(0, 0, 0, 0) 60%,
+      #000 78%,
+      #000 100%);
+  mask-size: 600% 100%;
+  -webkit-mask-size: 600% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  animation: giyan-wipe-loop 5.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  will-change: mask-position, -webkit-mask-position;
+}
+
+@keyframes giyan-wipe-loop {
+  0% {
+    mask-position: 100% 0;
+    -webkit-mask-position: 100% 0;
+  }
+
+  /* Pause visible: text is 100% solid & readable */
+  18% {
+    mask-position: 100% 0;
+    -webkit-mask-position: 100% 0;
+  }
+
+  /* Wipe Disappear: sweeps from left to right, fading out into transparency */
+  48% {
+    mask-position: 50% 0;
+    -webkit-mask-position: 50% 0;
+  }
+
+  /* Pause hidden: text is 100% invisible */
+  56% {
+    mask-position: 50% 0;
+    -webkit-mask-position: 50% 0;
+  }
+
+  /* Wipe Reappear: sweeps from left to right again, revealing back into solid */
+  86% {
+    mask-position: 0% 0;
+    -webkit-mask-position: 0% 0;
+  }
+
+  /* Pause visible: text is 100% solid, seamlessly wraps around */
+  100% {
+    mask-position: 0% 0;
+    -webkit-mask-position: 0% 0;
+  }
+}
+
+
+/* ── Hero: Profile photo wrapper ── */
+.hero-profile-photo {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+/* ── Spotlight Photo — outer wrapper ── */
+.sp-wrap {
+  position: relative;
+  height: 100%;
+  max-width: clamp(280px, 75vw, 440px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: crosshair;
+}
+
+/* ── Shared image base ── */
+.sp-img {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: clamp(280px, 75vw, 440px);
+  object-fit: contain;
+  object-position: bottom center;
+  user-select: none;
+  -webkit-user-drag: none;
+  /* Bottom fade only; top is 100% solid for crisp silhouette overlapping the text */
+  mask-image: linear-gradient(to top, transparent 0%, black 14%, black 100%);
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, black 14%, black 100%);
+}
+
+/* ── Grayscale layer (bottom) ── */
+.sp-img--gray {
+  filter: grayscale(100%) brightness(0.88);
+}
+
+/* ── Color layer image — full color, no filter ── */
+.sp-img--color {
+  filter: none;
+}
+
+/* ── Color overlay container — JS controls opacity & mask-image directly ── */
+.sp-color-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  /* transition dynamically set by JS: fast fade-in, slow fade-out */
 }

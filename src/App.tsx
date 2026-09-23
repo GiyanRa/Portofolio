@@ -1,12 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, Variants, useInView } from 'framer-motion'
-import profilePhoto from './imports/image.png'
+import profilePhoto from './imports/foto.png'
 import bookstoreImg from './imports/image-18.png'
 import journeyscapeImg from './imports/image-15.png'
 import indotexImg from './imports/image-16.png'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-import * as THREE from 'three'
 
 const NAV_LINKS = ['about', 'skills', 'projects', 'experience', 'research', 'contact']
 
@@ -188,7 +185,7 @@ function useActiveSection() {
           }
         }
       })
-      
+
       // Handle the case when scrolled to the very bottom
       if ((window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight - 100) {
         current = NAV_LINKS[NAV_LINKS.length - 1]
@@ -228,417 +225,12 @@ const InstagramIcon = () => (
   </svg>
 )
 
-// ─── Hero Canvas Background ──────────────────────────
-function HeroBackground() {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    let width = canvas.width = window.innerWidth
-    let height = canvas.height = window.innerHeight
-
-    // Elements
-    const stars: { x: number; y: number; size: number; speed: number; opacity: number }[] = []
-    for (let i = 0; i < (width < 768 ? 25 : 60); i++) {
-      stars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: Math.random() * 2,
-        speed: Math.random() * 0.5 + 0.1,
-        opacity: Math.random() * 0.5 + 0.2
-      })
-    }
-
-    const clouds: { x: number; y: number; length: number; speed: number; color: string; thickness: number }[] = []
-    const numClouds = width < 768 ? 15 : 30
-    for (let i = 0; i < numClouds; i++) {
-      const isDark = Math.random() > 0.5
-      clouds.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        length: Math.random() * 300 + 100,
-        speed: (Math.random() * 1.5 + 0.5) * (Math.random() > 0.5 ? 1 : -1),
-        thickness: Math.random() * 20 + 10,
-        color: isDark ? 'rgba(10, 25, 47, 0.9)' : 'rgba(255, 255, 255, 0.15)'
-      })
-    }
-
-    let animationFrameId: number
-
-    const render = () => {
-      if (!canvas) return
-
-      // Mencegah bulan menjadi lonjong saat di-zoom in dengan sinkronisasi resolusi canvas aktual
-      if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-        width = canvas.width = canvas.clientWidth
-        height = canvas.height = canvas.clientHeight
-      }
-
-      // Responsive logic
-      const isMobile = width < 768
-      const moonX = isMobile ? width * 0.5 : width * 0.7
-      const moonY = isMobile ? height * 0.35 : height * 0.5
-      const moonRadius = Math.min(width, height) * (isMobile ? 0.3 : 0.35)
-
-      // Background gradient
-      const gradient = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, width)
-      gradient.addColorStop(0, '#112240')
-      gradient.addColorStop(1, '#0a192f')
-      ctx.fillStyle = gradient
-      ctx.fillRect(0, 0, width, height)
-
-      // --- Draw Gemini Constellation ---
-      const geminiCx = isMobile ? width * 0.5 : width * 0.25
-      const geminiCy = isMobile ? height * 0.7 : height * 0.4
-      // Pastikan skala memiliki batas minimal agar tetap terlihat saat di zoom ekstrem
-      const gScale = Math.max(0.6, Math.min(width, height) / 800)
-
-      const geminiPoints = [
-        { x: -40, y: -120, name: 'Castor' },   // 0
-        { x: 40, y: -100, name: 'Pollux' },    // 1
-        { x: -50, y: -50 },                    // 2 Castor neck
-        { x: 20, y: -40 },                     // 3 Pollux neck
-        { x: -60, y: 30 },                     // 4 Castor waist
-        { x: 10, y: 40 },                      // 5 Pollux waist
-        { x: -80, y: 110 },                    // 6 Castor foot
-        { x: -10, y: 120 },                    // 7 Pollux foot
-        { x: -100, y: -30 },                   // 8 Castor arm
-        { x: 70, y: -20 },                     // 9 Pollux arm
-      ]
-
-      const geminiLines = [
-        [0, 2], [2, 4], [4, 6], // Castor body
-        [1, 3], [3, 5], [5, 7], // Pollux body
-        [4, 5],                 // Waist connection
-        [2, 8], [3, 9]          // Arms
-      ]
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
-      ctx.lineWidth = 1.5
-      geminiLines.forEach(([i, j]) => {
-        const p1 = geminiPoints[i]
-        const p2 = geminiPoints[j]
-        ctx.beginPath()
-        ctx.moveTo(geminiCx + p1.x * gScale, geminiCy + p1.y * gScale)
-        ctx.lineTo(geminiCx + p2.x * gScale, geminiCy + p2.y * gScale)
-        ctx.stroke()
-      })
-
-      const pulse = Math.sin(Date.now() * 0.002) * 0.3 + 0.7
-      geminiPoints.forEach(p => {
-        ctx.beginPath()
-        const r = p.name ? 5 * gScale : 2.5 * gScale
-        ctx.arc(geminiCx + p.x * gScale, geminiCy + p.y * gScale, r, 0, Math.PI * 2)
-        ctx.fillStyle = p.name ? `rgba(255, 255, 255, ${pulse})` : 'rgba(255, 255, 255, 0.7)'
-        ctx.fill()
-
-        if (p.name) {
-          // Glow lebih terang untuk Castor & Pollux
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.9)'
-          ctx.shadowBlur = 15
-          ctx.fill()
-          ctx.shadowBlur = 0
-        }
-      })
-
-      // --- Moon Glow ---
-      ctx.beginPath()
-      ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(255,255,255,0)'
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.15)'
-      ctx.shadowBlur = 60
-      ctx.fill()
-      ctx.shadowBlur = 0
-
-      // Draw Stars with twinkling
-      stars.forEach(star => {
-        const twinkle = Math.sin(Date.now() * 0.003 + star.x) * 0.3 + 0.7
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * twinkle})`
-        ctx.beginPath()
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
-        ctx.fill()
-        star.y -= star.speed
-        if (star.y < 0) {
-          star.y = height
-          star.x = Math.random() * width
-        }
-      })
-
-      // Draw horizontal clouds/lines
-      ctx.lineCap = 'round'
-      clouds.forEach(cloud => {
-        ctx.beginPath()
-        ctx.moveTo(cloud.x, cloud.y)
-        ctx.lineTo(cloud.x + cloud.length, cloud.y)
-        ctx.lineWidth = cloud.thickness
-        ctx.strokeStyle = cloud.color
-        ctx.stroke()
-
-        cloud.x += cloud.speed
-        if (cloud.speed > 0 && cloud.x > width + 100) {
-          cloud.x = -cloud.length - 100
-          cloud.y = Math.random() * height
-        } else if (cloud.speed < 0 && cloud.x + cloud.length < -100) {
-          cloud.x = width + 100
-          cloud.y = Math.random() * height
-        }
-      })
-
-      animationFrameId = requestAnimationFrame(render)
-    }
-
-    render()
-
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth
-      height = canvas.height = window.innerHeight
-    }
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      cancelAnimationFrame(animationFrameId)
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 z-0 w-full h-full pointer-events-none"
-    />
-  )
-}
-
-// ─── Pseudo-noise for continent-like patterns ──────────────────────────
-// Simple hash-based noise that creates organic landmass shapes on a sphere
-function pseudoNoise3D(x: number, y: number, z: number): number {
-  // Multiple octaves of sin-based noise to create organic shapes
-  let val = 0
-  val += Math.sin(x * 1.7 + y * 2.3 + z * 0.9) * 0.35
-  val += Math.sin(x * 3.1 - y * 1.4 + z * 2.7) * 0.25
-  val += Math.sin(x * 5.3 + y * 4.1 - z * 3.2) * 0.15
-  val += Math.sin(x * 0.8 - y * 3.7 + z * 1.5) * 0.25
-  val += Math.sin(x * 2.5 + y * 0.6 + z * 4.8) * 0.12
-  val += Math.cos(x * 1.2 + y * 2.8 - z * 1.1) * 0.2
-  val += Math.cos(x * 4.0 - y * 0.9 + z * 3.5) * 0.1
-  return val
-}
-
-// ─── 3D Interactive Moon (Globe-style with continents) ──────────────────────────
-function InteractiveMoon() {
-  const groupRef = React.useRef<THREE.Group>(null)
-  const pointsRef = React.useRef<THREE.Points>(null)
-  const lineMatRef = React.useRef<THREE.LineBasicMaterial>(null)
-  const [isGemini, setIsGemini] = useState(false)
-  const progressRef = React.useRef(0)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsGemini(prev => !prev)
-    }, 7000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const { spherePositions, targetPositions, geminiLinesData, currentPositions, alphas } = React.useMemo(() => {
-    // Use higher resolution for more dots — denser grid = more continent detail
-    const sphereGeo = new THREE.SphereGeometry(1, 64, 64)
-    const sPos = sphereGeo.attributes.position.array
-    const count = sPos.length / 3
-
-    // Build filtered arrays: only keep dots where noise says "land"
-    const landPositions: number[] = []
-    const landAlphas: number[] = []
-
-    for (let i = 0; i < count; i++) {
-      const x = sPos[i * 3]
-      const y = sPos[i * 3 + 1]
-      const z = sPos[i * 3 + 2]
-
-      // Evaluate noise at this point on the sphere
-      const noiseVal = pseudoNoise3D(x * 3.5, y * 3.5, z * 3.5)
-
-      // Threshold: ~45% of surface = land (dots visible), rest = ocean (hidden)
-      if (noiseVal > -0.05) {
-        landPositions.push(x, y, z)
-        // Vary brightness based on noise — "coastline" dots are dimmer
-        const edgeFade = Math.min(1, (noiseVal + 0.05) * 3)
-        landAlphas.push(0.3 + edgeFade * 0.7)
-      }
-    }
-
-    const filteredSPos = new Float32Array(landPositions)
-    const filteredAlphas = new Float32Array(landAlphas)
-    const filteredCount = filteredSPos.length / 3
-
-    // Gemini constellation target positions (for morph)
-    const geminiPoints = [
-      { x: -40, y: -120 }, { x: 40, y: -100 }, { x: -50, y: -50 }, { x: 20, y: -40 },
-      { x: -60, y: 30 }, { x: 10, y: 40 }, { x: -80, y: 110 }, { x: -10, y: 120 },
-      { x: -100, y: -30 }, { x: 70, y: -20 }
-    ]
-    const scale = 0.008
-    const gemini3D = geminiPoints.map(p => new THREE.Vector3(p.x * scale, -p.y * scale, 0))
-
-    const tPos = new Float32Array(filteredSPos.length)
-    for (let i = 0; i < filteredCount; i++) {
-      const target = gemini3D[i % gemini3D.length]
-      tPos[i * 3] = target.x + (Math.random() - 0.5) * 0.03
-      tPos[i * 3 + 1] = target.y + (Math.random() - 0.5) * 0.03
-      tPos[i * 3 + 2] = target.z + (Math.random() - 0.5) * 0.03
-    }
-
-    // Gemini constellation lines
-    const lines = [
-      [0, 2], [2, 4], [4, 6],
-      [1, 3], [3, 5], [5, 7],
-      [4, 5], [2, 8], [3, 9]
-    ]
-    const lPos = new Float32Array(lines.length * 2 * 3)
-    lines.forEach(([i, j], idx) => {
-      lPos[idx * 6] = gemini3D[i].x; lPos[idx * 6 + 1] = gemini3D[i].y; lPos[idx * 6 + 2] = gemini3D[i].z;
-      lPos[idx * 6 + 3] = gemini3D[j].x; lPos[idx * 6 + 4] = gemini3D[j].y; lPos[idx * 6 + 5] = gemini3D[j].z;
-    })
-
-    const cPos = new Float32Array(filteredSPos)
-    return { spherePositions: filteredSPos, targetPositions: tPos, geminiLinesData: lPos, currentPositions: cPos, alphas: filteredAlphas }
-  }, [])
-
-  useFrame((state, delta) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += 0.0005
-      groupRef.current.rotation.z += 0.0002
-    }
-
-    const targetP = isGemini ? 1 : 0
-    progressRef.current = THREE.MathUtils.lerp(progressRef.current, targetP, delta * 2.5)
-    let p = Math.max(0, Math.min(1, progressRef.current))
-
-    // Cubic ease-in-out
-    const easeP = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
-
-    if (pointsRef.current) {
-      const positions = pointsRef.current.geometry.attributes.position.array as Float32Array
-      for (let i = 0; i < positions.length; i++) {
-        positions[i] = THREE.MathUtils.lerp(spherePositions[i], targetPositions[i], easeP)
-      }
-      pointsRef.current.geometry.attributes.position.needsUpdate = true
-    }
-
-    if (lineMatRef.current) {
-      lineMatRef.current.opacity = easeP * 0.4
-      lineMatRef.current.visible = lineMatRef.current.opacity > 0.01
-    }
-  })
-
-  // Create wireframe ring geometry (equator outline)
-  const ringGeo = React.useMemo(() => {
-    const segments = 128
-    const positions = new Float32Array((segments + 1) * 3)
-    for (let i = 0; i <= segments; i++) {
-      const theta = (i / segments) * Math.PI * 2
-      positions[i * 3] = Math.cos(theta) * 1.005
-      positions[i * 3 + 1] = 0
-      positions[i * 3 + 2] = Math.sin(theta) * 1.005
-    }
-    return positions
-  }, [])
-
-  return (
-    <group ref={groupRef}>
-      {/* Globe dots — only on "land" areas */}
-      <points ref={pointsRef}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[currentPositions, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial size={0.012} color="#88aaff" transparent opacity={0.55} depthWrite={false} blending={THREE.AdditiveBlending} />
-      </points>
-
-      {/* Subtle wireframe ring (equator) */}
-      <line>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[ringGeo, 3]} />
-        </bufferGeometry>
-        <lineBasicMaterial color="#ffffff" transparent opacity={0.06} />
-      </line>
-
-      {/* Second ring — tilted (meridian) */}
-      <line rotation={[0, 0, Math.PI / 2]}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[ringGeo, 3]} />
-        </bufferGeometry>
-        <lineBasicMaterial color="#ffffff" transparent opacity={0.04} />
-      </line>
-
-      {/* Gemini constellation lines (appear during morph) */}
-      <lineSegments>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[geminiLinesData, 3]}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial ref={lineMatRef} color="#ffffff" transparent opacity={0} linewidth={2} />
-      </lineSegments>
-    </group>
-  )
-}
-
-function MoonContainer() {
-  const [moonStyle, setMoonStyle] = useState({ left: 0, top: 0, width: 0, height: 0 })
-  const [isReady, setIsReady] = useState(false)
-
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      const isMobile = width < 768
-      const moonX = isMobile ? width * 0.5 : width * 0.7
-      const moonY = isMobile ? height * 0.35 : height * 0.5
-      const moonRadius = Math.min(width, height) * (isMobile ? 0.3 : 0.35)
-      const size = moonRadius * 2
-
-      setMoonStyle({
-        left: moonX - moonRadius,
-        top: moonY - moonRadius,
-        width: size,
-        height: size
-      })
-      setIsReady(true)
-    }
-
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  if (!isReady) return null
-
-  return (
-    <div className="absolute z-10 pointer-events-auto cursor-grab active:cursor-grabbing" style={{ ...moonStyle }}>
-      <Canvas camera={{ position: [0, 0, 2.7], fov: 45 }} gl={{ alpha: true }}>
-        <ambientLight intensity={0.1} />
-        <directionalLight position={[-5, 3, 5]} intensity={1.5} color="#ffffff" />
-        <directionalLight position={[5, -3, -5]} intensity={0.5} color="#cbd5e1" />
-        <React.Suspense fallback={null}>
-          <InteractiveMoon />
-        </React.Suspense>
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          autoRotate={true}
-          autoRotateSpeed={2.0}
-        />
-      </Canvas>
-    </div>
-  )
-}
+const EmailIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+)
 
 // ─── NavBar ──────────────────────────
 function NavBar() {
@@ -682,11 +274,11 @@ function NavBar() {
                 href={`#${l}`}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  duration: 0.6, 
+                transition={{
+                  duration: 0.6,
                   delay: 0.1 + (index * 0.1), // Stagger delay for wave effect
-                  type: 'spring', 
-                  stiffness: 80 
+                  type: 'spring',
+                  stiffness: 80
                 }}
                 whileHover={{ scale: 1.15, y: -5, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
                 whileTap={{ scale: 0.95 }}
@@ -777,126 +369,320 @@ function NavBar() {
   )
 }
 
+// ─── GIYAN RADH Animated Text ─────────────────────────
+function GiyanText() {
+  const giyanLetters = ['G', 'I', 'Y', 'A', 'N']
+  const radhLetters = ['R', 'A', 'D', 'H']
+
+  return (
+    <div className="hero-name-row flex items-center justify-center whitespace-nowrap">
+      {/* GIYAN — outline stroke, ONLY GIYAN has the wipe transition loop */}
+      <div className="giyan-wipe-container">
+        <div className="giyan-wipe-wrapper">
+          <div className="flex items-center">
+            {giyanLetters.map((letter, i) => (
+              <motion.span
+                key={`g-${i}`}
+                className="giyan-outline-letter"
+                data-letter={letter}
+                initial={{ y: '115%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  duration: 0.9,
+                  ease: [0.16, 1, 0.3, 1],
+                  delay: 0.3 + i * 0.06,
+                  opacity: { duration: 0.4, delay: 0.3 + i * 0.06 }
+                }}
+              >
+                {letter}
+              </motion.span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Space between GIYAN and RADH */}
+      <span className="name-word-space" aria-hidden="true" />
+
+      {/* RADH — solid white fill, NO wipe animation (stays continuously solid) */}
+      <div className="flex items-center">
+        {radhLetters.map((letter, i) => (
+          <motion.span
+            key={`r-${i}`}
+            className="radh-solid-letter"
+            data-letter={letter}
+            initial={{ y: '115%', opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{
+              duration: 0.9,
+              ease: [0.16, 1, 0.3, 1],
+              delay: 0.65 + i * 0.06,
+              opacity: { duration: 0.4, delay: 0.65 + i * 0.06 }
+            }}
+          >
+            {letter}
+          </motion.span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Spotlight Color Reveal Photo ─────────────────────────
+function SpotlightPhoto({ src, alt, className, style }: {
+  src: string
+  alt: string
+  className?: string
+  style?: React.CSSProperties
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const colorLayerRef = useRef<HTMLDivElement>(null)
+  const rafRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    const colorLayer = colorLayerRef.current
+    if (!container || !colorLayer) return
+
+    const RADIUS = 100
+
+    const setMask = (x: number, y: number) => {
+      const mask = `radial-gradient(circle ${RADIUS}px at ${x}px ${y}px, black 0%, black 35%, rgba(0,0,0,0.5) 65%, transparent 100%)`
+      colorLayer.style.webkitMaskImage = mask
+      colorLayer.style.maskImage = mask
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      rafRef.current = requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect()
+        if (rect.width === 0 || rect.height === 0) return
+
+        const x = e.clientX - rect.left
+        const y = e.clientY - rect.top
+        const isInside = (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        )
+
+        if (isInside) {
+          setMask(x, y)
+          colorLayer.style.transition = 'opacity 0.15s ease'
+          colorLayer.style.opacity = '1'
+        } else {
+          colorLayer.style.transition = 'opacity 0.5s ease'
+          colorLayer.style.opacity = '0'
+        }
+      })
+    }
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!e.touches[0]) return
+      const t = e.touches[0]
+      const rect = container.getBoundingClientRect()
+      if (
+        t.clientX >= rect.left &&
+        t.clientX <= rect.right &&
+        t.clientY >= rect.top &&
+        t.clientY <= rect.bottom
+      ) {
+        setMask(t.clientX - rect.left, t.clientY - rect.top)
+        colorLayer.style.transition = 'opacity 0.15s ease'
+        colorLayer.style.opacity = '1'
+      } else {
+        colorLayer.style.transition = 'opacity 0.5s ease'
+        colorLayer.style.opacity = '0'
+      }
+    }
+
+    const onTouchEnd = () => {
+      colorLayer.style.transition = 'opacity 0.5s ease'
+      colorLayer.style.opacity = '0'
+    }
+
+    const rect = container.getBoundingClientRect()
+    if (rect.width > 0) setMask(rect.width / 2, rect.height / 2)
+
+    window.addEventListener('mousemove', onMouseMove, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onTouchEnd)
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+  }, [])
+
+  return (
+    <div
+      ref={containerRef}
+      className={`sp-wrap ${className ?? ''}`}
+      style={style}
+    >
+      {/* Layer bawah — grayscale */}
+      <img src={src} alt={alt} className="sp-img sp-img--gray" draggable={false} />
+      {/* Layer atas — warna asli, opacity & mask diatur lewat JS */}
+      <div ref={colorLayerRef} className="sp-color-layer">
+        <img src={src} alt="" aria-hidden className="sp-img sp-img--color" draggable={false} />
+      </div>
+    </div>
+  )
+}
+
 // ─── Hero ──────────────────────────
 function Hero() {
-  const typedText = useTypewriter(['web developer', 'software engineer', 'UI/UX enthusiast'], 90, 60, 2500)
+  const socialLinks = [
+    { label: 'GitHub', href: 'https://github.com/GiyanRa', icon: <GithubIcon /> },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/', icon: <LinkedInIcon /> },
+    { label: 'Instagram', href: 'https://www.instagram.com/giyanradh/', icon: <InstagramIcon /> },
+    { label: 'Email', href: 'mailto:giyanraditya024@gmail.com', icon: <EmailIcon /> },
+  ]
 
   return (
     <section
       id="hero"
-      className="relative min-h-[100svh] flex items-center bg-[#10131A] overflow-hidden pt-16 md:pt-20"
+      className="relative min-h-[100svh] flex items-center bg-[#0d1117] overflow-hidden"
     >
-      <div className="absolute inset-0 z-0">
-        <HeroBackground />
-        <MoonContainer />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#10131A] z-20 pointer-events-none" />
-      </div>
+      {/* Subtle grid background */}
+      <div className="absolute inset-0 z-0 hero-grid-bg" />
+      {/* Vignette overlay */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0d1117]/60 via-transparent to-[#0d1117]/80 pointer-events-none" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#0d1117]/70 via-transparent to-[#0d1117]/70 pointer-events-none" />
 
-      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-16 flex flex-col justify-center relative z-20 py-12 md:py-20 h-full pointer-events-none">
+      {/* ── Center photo & Behind-Head Name ── */}
+      <div className="absolute inset-0 z-10 flex items-end justify-center pointer-events-none">
         <motion.div
-          className="flex flex-col items-start w-full max-w-3xl pointer-events-auto"
-          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+          className="relative h-[56svh] sm:h-[70svh] md:h-[86%] flex items-end justify-center pointer-events-auto"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
         >
-          {/* Animated accent dots */}
-          <div className="flex items-center gap-3 mb-8 md:mb-12">
-            {[0, 1, 2, 3, 4].map(i => (
-              <motion.div
-                key={i}
-                className="rounded-full bg-[#EFFF4F]"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: [0.3, 0.8, 0.3], scale: 1 }}
-                transition={{
-                  opacity: { repeat: Infinity, duration: 3, delay: i * 0.4 },
-                  scale: { duration: 0.5, delay: i * 0.1 }
-                }}
-                style={{
-                  width: i % 2 === 0 ? '6px' : '4px',
-                  height: i % 2 === 0 ? '6px' : '4px',
-                }}
-              />
-            ))}
-            <div className="h-[2px] w-16 md:w-24 bg-gradient-to-r from-[#EFFF4F]/60 to-transparent ml-2" />
+          {/* ── GIYAN RADH Name: Positioned directly behind head, hair overlapping bottom of letters ── */}
+          <div className="absolute top-2 sm:top-4 md:top-6 lg:top-7 left-1/2 -translate-x-1/2 z-[5] pointer-events-none select-none flex justify-center items-center">
+            <GiyanText />
           </div>
 
-          {/* Name with stagger effect */}
-          <div className="overflow-hidden mb-2">
-            <motion.h1
-              className="font-serif text-5xl sm:text-7xl md:text-8xl lg:text-[7rem] font-bold text-white leading-[1.05] tracking-tight break-words w-full"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-            >
-              GIYAN
-            </motion.h1>
-          </div>
-          <div className="overflow-hidden mb-6 md:mb-8">
-            <motion.h1
-              className="font-serif text-5xl sm:text-7xl md:text-8xl lg:text-[7rem] font-bold leading-[1.05] tracking-tight break-words w-full"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-            >
-              <span className="text-white">RADHI</span>
-              <span className="gradient-text">ETYA</span>
-            </motion.h1>
+          {/* Subtle soft glow behind photo */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[260px] sm:w-[340px] h-[340px] sm:h-[500px] bg-gradient-to-t from-white/5 via-transparent to-transparent blur-3xl pointer-events-none" />
+
+          {/* Spotlight Photo (z-10, hair sits in front of the letters) */}
+          <div className="relative z-10 h-full flex items-end justify-center">
+            <SpotlightPhoto
+              src={profilePhoto}
+              alt="Giyan Radhietya"
+              className="hero-profile-photo"
+              style={{ maxHeight: '100%' }}
+            />
           </div>
 
-          {/* Typewriter role */}
-          <motion.div
-            className="font-mono text-xs sm:text-sm md:text-base tracking-[0.1em] sm:tracking-[0.2em] text-white/70 mb-3 md:mb-4 h-8 flex items-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-          >
-            <span className="mr-3 text-[#EFFF4F]/60">{'>'}</span>
-            <span>{typedText}</span>
-            <span className="animate-cursor-blink ml-0.5 text-[#EFFF4F]">▍</span>
-          </motion.div>
-
-          {/* Subtle tagline */}
-          <motion.p
-            className="font-sans text-sm md:text-base text-zinc-500 font-light mb-10 md:mb-12 max-w-md leading-relaxed"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.8 }}
-          >
-            Crafting digital experiences at the intersection of code and design.
-          </motion.p>
-
-          {/* CTA with glow */}
-          <motion.div
-            className="flex flex-col sm:flex-row items-start w-full sm:w-auto gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.6 }}
-          >
-            <a
-              href="#projects"
-              className="group w-full sm:w-auto text-center font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] px-8 md:px-10 py-4 md:py-5 bg-[#EFFF4F] text-[#10131A] hover:shadow-[0_0_40px_rgba(239,255,79,0.3)] transition-all duration-500 font-bold border border-[#EFFF4F] relative overflow-hidden"
-            >
-              <span className="relative z-10">View Projects</span>
-              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors duration-300" />
-            </a>
-            <a
-              href="#contact"
-              className="w-full sm:w-auto text-center font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] px-8 md:px-10 py-4 md:py-5 border border-zinc-600 text-zinc-400 hover:border-[#EFFF4F]/50 hover:text-[#EFFF4F] transition-all duration-500"
-            >
-              Get in Touch
-            </a>
-          </motion.div>
+          {/* Bottom fade */}
+          <div className="absolute bottom-0 left-0 right-0 h-28 sm:h-32 bg-gradient-to-t from-[#0d1117] to-transparent z-20 pointer-events-none" />
         </motion.div>
       </div>
 
+      {/* ── Left info panel (shifted down on desktop, perfectly balanced above photo on mobile) ── */}
+      <div className="relative z-20 w-full max-w-[1400px] mx-auto px-6 md:px-16 flex items-start md:items-center min-h-[100svh] pt-20 sm:pt-28 md:pt-0 pb-8 pointer-events-none">
+        <motion.div
+          className="flex flex-col items-start max-w-[320px] sm:max-w-sm pointer-events-auto md:translate-y-16 lg:translate-y-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          {/* Title */}
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight mb-2 sm:mb-3">
+            Full Stack Developer
+          </h1>
+
+          {/* Tagline / Subtitle */}
+          <p className="text-xs sm:text-sm text-zinc-400 font-light leading-relaxed mb-4 sm:mb-6 max-w-[280px] sm:max-w-sm">
+            Designing digital products that are clear, usable, and conversion focused.
+          </p>
+
+          {/* Actions: CTA button + Social icons on mobile */}
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+            <a
+              href="#contact"
+              className="group inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-white text-[#0d1117] font-semibold text-xs sm:text-sm tracking-wide hover:bg-zinc-200 transition-all duration-300 shadow-md"
+            >
+              <span>Let's collaborate</span>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
+              >
+                <line x1="7" y1="17" x2="17" y2="7" />
+                <polyline points="7 7 17 7 17 17" />
+              </svg>
+            </a>
+
+            {/* Mobile-only compact social icon buttons */}
+            <div className="flex md:hidden items-center gap-1.5">
+              {socialLinks.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className="w-9 h-9 flex items-center justify-center rounded-full border border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/30 text-zinc-300 hover:text-white backdrop-blur-sm transition-all shadow-sm"
+                >
+                  <span className="w-4 h-4 flex items-center justify-center text-zinc-400">
+                    {s.icon}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ── Right social pills (Desktop, shifted down) ── */}
+      <motion.div
+        className="absolute right-6 md:right-12 top-[60%] lg:top-[62%] -translate-y-1/2 z-20 hidden md:flex flex-col items-end gap-3"
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 1.0 }}
+      >
+        {socialLinks.map((s, i) => (
+          <motion.a
+            key={s.label}
+            href={s.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/35 text-zinc-300 hover:text-white transition-all duration-300 text-xs font-medium backdrop-blur-sm shadow-sm"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1.1 + i * 0.1, duration: 0.4 }}
+            whileHover={{ x: -4 }}
+          >
+            <span className="w-4 h-4 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
+              {s.icon}
+            </span>
+            <span className="tracking-wide">{s.label}</span>
+          </motion.a>
+        ))}
+      </motion.div>
+
       {/* Scroll indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3 pointer-events-none"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 pointer-events-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
+        transition={{ delay: 1.8, duration: 1 }}
       >
-        <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-zinc-600">scroll</span>
+        <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-zinc-500">scroll</span>
         <div className="animate-scroll-bounce">
-          <svg width="16" height="24" viewBox="0 0 16 24" fill="none" className="text-zinc-600">
+          <svg width="14" height="20" viewBox="0 0 16 24" fill="none" className="text-zinc-500">
             <path d="M8 4L8 18M8 18L3 13M8 18L13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
@@ -1091,24 +877,29 @@ function Projects() {
               <motion.div
                 className={`lg:col-span-7 relative group ${i % 2 !== 0 ? 'lg:order-2' : ''}`}
                 initial="hidden" whileInView="visible" viewport={viewportConfig} variants={scaleVariants}
+                style={{
+                  filter: 'drop-shadow(0 0 1px rgba(239,200,79,0.45)) drop-shadow(0 0 10px rgba(239,200,79,0.12))',
+                }}
               >
-                <div className="aspect-[16/10] overflow-hidden rounded-sm relative bg-zinc-900 border border-zinc-800/50">
+                <div
+                  className="aspect-[16/10] overflow-hidden relative bg-zinc-900"
+                  style={{
+                    clipPath: 'polygon(22px 0%, calc(100% - 22px) 0%, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 22px 100%, 0% calc(100% - 22px), 0% 22px)',
+                  }}
+                >
                   <img
                     src={p.image}
                     alt={p.name}
                     className="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-[1.06] transition-all duration-700"
+                    style={{ borderRadius: 0 }}
                   />
                   {p.censor && (
-                    <div className="absolute bottom-[16%] left-[1%] w-[50%] h-[22%] rounded overflow-hidden">
+                    <div className="absolute bottom-[16%] left-[1%] w-[50%] h-[22%] overflow-hidden">
                       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
                     </div>
                   )}
                   {/* Glassmorphism overlay on hover */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#10131A]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  {/* Corner decorations */}
-                  <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
               </motion.div>
 

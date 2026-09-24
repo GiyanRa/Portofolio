@@ -532,19 +532,15 @@ body::after {
   filter: grayscale(100%) brightness(0.88);
 }
 
-/* ── Color layer image — full color, no filter ── */
-.sp-img--color {
-  filter: none;
-}
-
-/* ── Color overlay container — JS controls opacity & mask-image directly ── */
-.sp-color-layer {
+/* ── Spotlight Trail Canvas — GPU-accelerated fading path reveal ── */
+.sp-canvas {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  opacity: 0;
-  /* transition dynamically set by JS: fast fade-in, slow fade-out */
+  user-select: none;
+  -webkit-user-drag: none;
+  mask-image: linear-gradient(to top, transparent 0%, black 14%, black 100%);
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, black 14%, black 100%);
 }

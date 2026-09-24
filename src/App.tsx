@@ -434,90 +434,317 @@ function GiyanText() {
   )
 }
 
-// ─── Spotlight Color Reveal Photo ─────────────────────────
-function SpotlightPhoto({ src, alt, className, style }: {
+// ─── Spotlight Color Reveal Photo (Trail & Sequential Path Fade) ──
+interface SpotlightTrailPoint {
+  x: number
+  y: number
+  time: number
+  duration: number
+  radius: number
+}
+
+function SpotlightPhoto({ src, alt, className, style, radius: propRadius = 55 }: {
   src: string
   alt: string
   className?: string
   style?: React.CSSProperties
+  radius?: number
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const colorLayerRef = useRef<HTMLDivElement>(null)
+  const grayImgRef = useRef<HTMLImageElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const trailPointsRef = useRef<SpotlightTrailPoint[]>([])
+  const lastPosRef = useRef<{ x: number; y: number } | null>(null)
+  const currentCursorRef = useRef<{ x: number; y: number; active: boolean; radius: number }>({
+    x: 0,
+    y: 0,
+    active: false,
+    radius: propRadius,
+  })
+  const colorImgRef = useRef<HTMLImageElement | null>(null)
   const rafRef = useRef<number | null>(null)
+  const isAnimatingRef = useRef(false)
+
+  // Preload and cache pristine full-color image
+  useEffect(() => {
+    const img = new Image()
+    img.src = src
+    colorImgRef.current = img
+  }, [src])
 
   useEffect(() => {
     const container = containerRef.current
-    const colorLayer = colorLayerRef.current
-    if (!container || !colorLayer) return
+    const grayImg = grayImgRef.current
+    const canvas = canvasRef.current
+    if (!container || !grayImg || !canvas) return
 
-    const RADIUS = 100
+    // Helper: start loop if not already running
+    const startAnimation = () => {
+      if (isAnimatingRef.current) return
+      isAnimatingRef.current = true
+      renderLoop()
+    }
 
-    const setMask = (x: number, y: number) => {
-      const mask = `radial-gradient(circle ${RADIUS}px at ${x}px ${y}px, black 0%, black 35%, rgba(0,0,0,0.5) 65%, transparent 100%)`
-      colorLayer.style.webkitMaskImage = mask
-      colorLayer.style.maskImage = mask
+    const renderLoop = () => {
+      const currentContainer = containerRef.current
+      const currentGrayImg = grayImgRef.current
+      const currentCanvas = canvasRef.current
+      const currentImg = colorImgRef.current || currentGrayImg
+
+      if (!currentContainer || !currentGrayImg || !currentCanvas || !currentImg) {
+        isAnimatingRef.current = false
+        return
+      }
+
+      const ctx = currentCanvas.getContext('2d')
+      if (!ctx) {
+        isAnimatingRef.current = false
+        return
+      }
+
+      const now = performance.now()
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const contRect = currentContainer.getBoundingClientRect()
+
+      if (contRect.width === 0 || contRect.height === 0) {
+        isAnimatingRef.current = false
+        return
+      }
+
+      const targetW = Math.round(contRect.width * dpr)
+      const targetH = Math.round(contRect.height * dpr)
+
+      if (currentCanvas.width !== targetW || currentCanvas.height !== targetH) {
+        currentCanvas.width = targetW
+        currentCanvas.height = targetH
+      }
+
+      if (!offscreenCanvasRef.current) {
+        offscreenCanvasRef.current = document.createElement('canvas')
+      }
+      const offCanvas = offscreenCanvasRef.current
+      if (offCanvas.width !== targetW || offCanvas.height !== targetH) {
+        offCanvas.width = targetW
+        offCanvas.height = targetH
+      }
+
+      const offCtx = offCanvas.getContext('2d')
+      if (!offCtx) {
+        isAnimatingRef.current = false
+        return
+      }
+
+      // Filter active trail points: remove points whose lifetime has expired
+      const alivePoints = trailPointsRef.current.filter((p) => now - p.time < p.duration)
+      trailPointsRef.current = alivePoints
+
+      const hasCursor = currentCursorRef.current.active
+
+      // When all points have faded out and cursor is not active, cleanly clear and pause loop
+      if (alivePoints.length === 0 && !hasCursor) {
+        ctx.clearRect(0, 0, currentCanvas.width, currentCanvas.height)
+        isAnimatingRef.current = false
+        return
+      }
+
+      // ── Step 1: Draw the fading trail mask onto offscreen buffer ──
+      offCtx.clearRect(0, 0, offCanvas.width, offCanvas.height)
+
+      // Draw trail points (older points fade first, newer points linger)
+      for (let i = 0; i < alivePoints.length; i++) {
+        const p = alivePoints[i]
+        const elapsed = now - p.time
+        const progress = Math.min(Math.max(elapsed / p.duration, 0), 1)
+        // Silk non-linear fade curve
+        const alpha = Math.pow(1 - progress, 1.3)
+        if (alpha <= 0.005) continue
+
+        // Subtle tapering glow
+        const r = p.radius * (1 - progress * 0.12)
+
+        const grad = offCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r)
+        grad.addColorStop(0, `rgba(255, 255, 255, ${alpha})`)
+        grad.addColorStop(0.35, `rgba(255, 255, 255, ${alpha * 0.85})`)
+        grad.addColorStop(0.7, `rgba(255, 255, 255, ${alpha * 0.35})`)
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)')
+
+        offCtx.fillStyle = grad
+        offCtx.beginPath()
+        offCtx.arc(p.x, p.y, r, 0, Math.PI * 2)
+        offCtx.fill()
+      }
+
+      // Draw active cursor spotlight at current mouse position
+      if (hasCursor) {
+        const cur = currentCursorRef.current
+        const r = cur.radius * dpr
+        const grad = offCtx.createRadialGradient(cur.x, cur.y, 0, cur.x, cur.y, r)
+        grad.addColorStop(0, 'rgba(255, 255, 255, 1)')
+        grad.addColorStop(0.35, 'rgba(255, 255, 255, 0.85)')
+        grad.addColorStop(0.7, 'rgba(255, 255, 255, 0.35)')
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)')
+
+        offCtx.fillStyle = grad
+        offCtx.beginPath()
+        offCtx.arc(cur.x, cur.y, r, 0, Math.PI * 2)
+        offCtx.fill()
+      }
+
+      // ── Step 2: Composite onto visible canvas ──
+      ctx.clearRect(0, 0, currentCanvas.width, currentCanvas.height)
+
+      const imgRect = currentGrayImg.getBoundingClientRect()
+      const imgX = (imgRect.left - contRect.left) * dpr
+      const imgY = (imgRect.top - contRect.top) * dpr
+      const imgW = imgRect.width * dpr
+      const imgH = imgRect.height * dpr
+
+      // Draw the color photo in exact alignment with the grayscale image
+      ctx.drawImage(currentImg, imgX, imgY, imgW, imgH)
+
+      // Mask it with the trail and cursor spotlight
+      ctx.globalCompositeOperation = 'destination-in'
+      ctx.drawImage(offCanvas, 0, 0)
+      ctx.globalCompositeOperation = 'source-over'
+
+      rafRef.current = requestAnimationFrame(renderLoop)
+    }
+
+    const handlePointerMove = (clientX: number, clientY: number) => {
+      const cont = containerRef.current
+      const gImg = grayImgRef.current
+      if (!cont || !gImg) return
+
+      const contRect = cont.getBoundingClientRect()
+      const imgRect = gImg.getBoundingClientRect()
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+      const isInside =
+        clientX >= imgRect.left &&
+        clientX <= imgRect.right &&
+        clientY >= imgRect.top &&
+        clientY <= imgRect.bottom
+
+      if (isInside) {
+        const x = (clientX - contRect.left) * dpr
+        const y = (clientY - contRect.top) * dpr
+        const baseRadius = Math.max(30, Math.min(propRadius, contRect.width * 0.18))
+        const radius = baseRadius * dpr
+        const now = performance.now()
+        const TRAIL_DURATION = 1400 // ms: leaves a luxurious, clearly visible trail that gradually fades
+
+        currentCursorRef.current = {
+          x,
+          y,
+          active: true,
+          radius: baseRadius,
+        }
+
+        if (lastPosRef.current) {
+          const dist = Math.hypot(x - lastPosRef.current.x, y - lastPosRef.current.y)
+          const stepDist = 4 * dpr // fine-grain interpolation for silky smooth continuous stroke
+          if (dist > stepDist) {
+            const steps = Math.min(Math.ceil(dist / stepDist), 50)
+            for (let i = 1; i <= steps; i++) {
+              const t = i / steps
+              trailPointsRef.current.push({
+                x: lastPosRef.current.x + (x - lastPosRef.current.x) * t,
+                y: lastPosRef.current.y + (y - lastPosRef.current.y) * t,
+                time: now,
+                duration: TRAIL_DURATION,
+                radius,
+              })
+            }
+            lastPosRef.current = { x, y }
+          }
+        } else {
+          trailPointsRef.current.push({
+            x,
+            y,
+            time: now,
+            duration: TRAIL_DURATION,
+            radius,
+          })
+          lastPosRef.current = { x, y }
+        }
+
+        // Cap stored points to avoid excessive memory
+        if (trailPointsRef.current.length > 250) {
+          trailPointsRef.current = trailPointsRef.current.slice(-250)
+        }
+
+        startAnimation()
+      } else {
+        if (currentCursorRef.current.active) {
+          const now = performance.now()
+          const TRAIL_DURATION = 1400
+          if (lastPosRef.current) {
+            trailPointsRef.current.push({
+              x: lastPosRef.current.x,
+              y: lastPosRef.current.y,
+              time: now,
+              duration: TRAIL_DURATION,
+              radius: currentCursorRef.current.radius * dpr,
+            })
+          }
+          currentCursorRef.current.active = false
+          lastPosRef.current = null
+          startAnimation()
+        }
+      }
+    }
+
+    const handlePointerLeave = () => {
+      if (currentCursorRef.current.active) {
+        const now = performance.now()
+        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+        if (lastPosRef.current) {
+          trailPointsRef.current.push({
+            x: lastPosRef.current.x,
+            y: lastPosRef.current.y,
+            time: now,
+            duration: 1400,
+            radius: currentCursorRef.current.radius * dpr,
+          })
+        }
+        currentCursorRef.current.active = false
+        lastPosRef.current = null
+        startAnimation()
+      }
     }
 
     const onMouseMove = (e: MouseEvent) => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      rafRef.current = requestAnimationFrame(() => {
-        const rect = container.getBoundingClientRect()
-        if (rect.width === 0 || rect.height === 0) return
-
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-        const isInside = (
-          e.clientX >= rect.left &&
-          e.clientX <= rect.right &&
-          e.clientY >= rect.top &&
-          e.clientY <= rect.bottom
-        )
-
-        if (isInside) {
-          setMask(x, y)
-          colorLayer.style.transition = 'opacity 0.15s ease'
-          colorLayer.style.opacity = '1'
-        } else {
-          colorLayer.style.transition = 'opacity 0.5s ease'
-          colorLayer.style.opacity = '0'
-        }
-      })
+      handlePointerMove(e.clientX, e.clientY)
     }
 
     const onTouchMove = (e: TouchEvent) => {
-      if (!e.touches[0]) return
-      const t = e.touches[0]
-      const rect = container.getBoundingClientRect()
-      if (
-        t.clientX >= rect.left &&
-        t.clientX <= rect.right &&
-        t.clientY >= rect.top &&
-        t.clientY <= rect.bottom
-      ) {
-        setMask(t.clientX - rect.left, t.clientY - rect.top)
-        colorLayer.style.transition = 'opacity 0.15s ease'
-        colorLayer.style.opacity = '1'
-      } else {
-        colorLayer.style.transition = 'opacity 0.5s ease'
-        colorLayer.style.opacity = '0'
+      if (e.touches && e.touches[0]) {
+        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
+      }
+    }
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches && e.touches[0]) {
+        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
       }
     }
 
     const onTouchEnd = () => {
-      colorLayer.style.transition = 'opacity 0.5s ease'
-      colorLayer.style.opacity = '0'
+      handlePointerLeave()
     }
 
-    const rect = container.getBoundingClientRect()
-    if (rect.width > 0) setMask(rect.width / 2, rect.height / 2)
-
     window.addEventListener('mousemove', onMouseMove, { passive: true })
+    window.addEventListener('mouseleave', handlePointerLeave)
     window.addEventListener('touchmove', onTouchMove, { passive: true })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseleave', handlePointerLeave)
       window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchend', onTouchEnd)
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
@@ -529,12 +756,20 @@ function SpotlightPhoto({ src, alt, className, style }: {
       className={`sp-wrap ${className ?? ''}`}
       style={style}
     >
-      {/* Layer bawah — grayscale */}
-      <img src={src} alt={alt} className="sp-img sp-img--gray" draggable={false} />
-      {/* Layer atas — warna asli, opacity & mask diatur lewat JS */}
-      <div ref={colorLayerRef} className="sp-color-layer">
-        <img src={src} alt="" aria-hidden className="sp-img sp-img--color" draggable={false} />
-      </div>
+      {/* Base grayscale layer */}
+      <img
+        ref={grayImgRef}
+        src={src}
+        alt={alt}
+        className="sp-img sp-img--gray"
+        draggable={false}
+      />
+      {/* Top layer — GPU accelerated trail reveal canvas */}
+      <canvas
+        ref={canvasRef}
+        className="sp-canvas"
+        aria-hidden="true"
+      />
     </div>
   )
 }
@@ -574,7 +809,7 @@ function Hero() {
     // Trigger mailto safely
     try {
       window.location.href = `mailto:${email}`
-    } catch (_) {}
+    } catch (_) { }
   }
 
   const socialLinks = [
@@ -680,11 +915,10 @@ function Hero() {
                     rel={isEmail ? undefined : 'noopener noreferrer'}
                     aria-label={s.label}
                     title={isEmail ? 'Klik untuk salin email' : s.label}
-                    className={`w-9 h-9 flex items-center justify-center rounded-full border backdrop-blur-sm transition-all shadow-sm ${
-                      isEmail && emailCopied
+                    className={`w-9 h-9 flex items-center justify-center rounded-full border backdrop-blur-sm transition-all shadow-sm ${isEmail && emailCopied
                         ? 'border-[#EFFF4F] bg-[#EFFF4F]/25 text-[#EFFF4F]'
                         : 'border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/30 text-zinc-300 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <span className="w-4 h-4 flex items-center justify-center text-zinc-400">
                       {isEmail && emailCopied ? <CheckIcon /> : s.icon}
@@ -712,11 +946,10 @@ function Hero() {
                 onClick={isEmail ? handleEmailAction : undefined}
                 target={isEmail ? undefined : '_blank'}
                 rel={isEmail ? undefined : 'noopener noreferrer'}
-                className={`group flex items-center gap-3 w-[138px] px-4 py-2.5 rounded-full border transition-all duration-300 text-xs font-medium backdrop-blur-sm shadow-sm cursor-pointer ${
-                  isEmail && emailCopied
+                className={`group flex items-center gap-3 w-[138px] px-4 py-2.5 rounded-full border transition-all duration-300 text-xs font-medium backdrop-blur-sm shadow-sm cursor-pointer ${isEmail && emailCopied
                     ? 'border-[#EFFF4F] bg-[#EFFF4F]/20 text-[#EFFF4F] shadow-[0_0_18px_rgba(239,255,79,0.35)]'
                     : 'border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/35 text-zinc-300 hover:text-white'
-                }`}
+                  }`}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 1.1 + i * 0.1, duration: 0.4 }}
@@ -1430,7 +1663,7 @@ function Contact() {
 
     try {
       window.location.href = `mailto:${email}`
-    } catch (_) {}
+    } catch (_) { }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

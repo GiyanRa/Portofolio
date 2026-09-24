@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, Variants, useInView } from 'framer-motion'
 import profilePhoto from './imports/foto.png'
-import bookstoreImg from './imports/image-18.png'
-import journeyscapeImg from './imports/image-15.png'
+import bookstoreImg from './imports/image-18.webp'
+import journeyscapeImg from './imports/image-15.webp'
 import indotexImg from './imports/image-16.png'
 
 const NAV_LINKS = ['about', 'skills', 'projects', 'experience', 'research', 'contact']
@@ -31,7 +31,7 @@ const PROJECTS: ProjectData[] = [
     id: '01', name: 'Fatika Portofolio', year: '2026', status: 'Live Project',
     desc: 'A personal portfolio website for Fatika Rahmanisa, showcasing profile, education, experience, skills, and contact information with a modern green and cream color scheme.',
     tags: ['React', 'TypeScript', 'Tailwind CSS', 'Vercel'],
-    image: '/portofatika.jpg',
+    image: '/portofatika.webp',
     censor: false,
     link: 'https://fatika-portofolio.vercel.app/',
   },
@@ -39,7 +39,7 @@ const PROJECTS: ProjectData[] = [
     id: '02', name: 'Pixel Dungeon', year: '2026', status: 'Live Project',
     desc: 'A retro-style pixel art dungeon game built with pure JavaScript and HTML5 Canvas. Features a hero who battles enemies across procedurally inspired floors, complete with attack animations, score tracking, and classic arcade gameplay.',
     tags: ['JavaScript', 'HTML5 Canvas', 'Game Dev', 'Vercel'],
-    image: '/pixeldungeon.jpg',
+    image: '/pixeldungeon.webp',
     censor: false,
     link: 'https://pixel-dungeon-wheat.vercel.app/',
   },
@@ -229,6 +229,12 @@ const EmailIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect width="20" height="16" x="2" y="4" rx="2" />
     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+)
+
+const CheckIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EFFF4F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
   </svg>
 )
 
@@ -535,6 +541,42 @@ function SpotlightPhoto({ src, alt, className, style }: {
 
 // ─── Hero ──────────────────────────
 function Hero() {
+  const [emailCopied, setEmailCopied] = useState(false)
+
+  const handleEmailAction = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const email = 'giyanraditya024@gmail.com'
+
+    // Copy to clipboard with universal fallback
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(email)
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = email
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+    } catch (_) {
+      const ta = document.createElement('textarea')
+      ta.value = email
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+
+    setEmailCopied(true)
+    setTimeout(() => setEmailCopied(false), 4000)
+
+    // Trigger mailto safely
+    try {
+      window.location.href = `mailto:${email}`
+    } catch (_) {}
+  }
+
   const socialLinks = [
     { label: 'GitHub', href: 'https://github.com/GiyanRa', icon: <GithubIcon /> },
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/', icon: <LinkedInIcon /> },
@@ -562,7 +604,7 @@ function Hero() {
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
         >
           {/* ── GIYAN RADH Name: Positioned directly behind head, hair overlapping bottom of letters ── */}
-          <div className="absolute top-[2%] sm:top-[3%] md:top-[4%] left-1/2 -translate-x-1/2 z-[5] pointer-events-none select-none flex justify-center items-center w-max">
+          <div className="absolute -top-[3%] sm:-top-[2%] md:top-[0%] lg:top-[1%] left-1/2 -translate-x-1/2 z-[5] pointer-events-none select-none flex justify-center items-center w-max">
             <GiyanText />
           </div>
 
@@ -627,51 +669,109 @@ function Hero() {
 
             {/* Mobile-only compact social icon buttons */}
             <div className="flex md:hidden items-center gap-1.5">
-              {socialLinks.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className="w-9 h-9 flex items-center justify-center rounded-full border border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/30 text-zinc-300 hover:text-white backdrop-blur-sm transition-all shadow-sm"
-                >
-                  <span className="w-4 h-4 flex items-center justify-center text-zinc-400">
-                    {s.icon}
-                  </span>
-                </a>
-              ))}
+              {socialLinks.map((s) => {
+                const isEmail = s.label === 'Email'
+                return (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    onClick={isEmail ? handleEmailAction : undefined}
+                    target={isEmail ? undefined : '_blank'}
+                    rel={isEmail ? undefined : 'noopener noreferrer'}
+                    aria-label={s.label}
+                    title={isEmail ? 'Klik untuk salin email' : s.label}
+                    className={`w-9 h-9 flex items-center justify-center rounded-full border backdrop-blur-sm transition-all shadow-sm ${
+                      isEmail && emailCopied
+                        ? 'border-[#EFFF4F] bg-[#EFFF4F]/25 text-[#EFFF4F]'
+                        : 'border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/30 text-zinc-300 hover:text-white'
+                    }`}
+                  >
+                    <span className="w-4 h-4 flex items-center justify-center text-zinc-400">
+                      {isEmail && emailCopied ? <CheckIcon /> : s.icon}
+                    </span>
+                  </a>
+                )
+              })}
             </div>
           </div>
         </motion.div>
 
-        {/* ── Right social pills (Desktop) — anchored within max-w-[1400px] ── */}
+        {/* ── Right social pills (Desktop) — anchored within max-w-[1400px], seragam & sejajar rapi ── */}
         <motion.div
-          className="pointer-events-auto hidden md:flex flex-col items-end gap-3 md:translate-y-8 lg:translate-y-12"
+          className="pointer-events-auto hidden md:flex flex-col items-end gap-3.5 md:translate-y-8 lg:translate-y-12"
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 1.0 }}
         >
-          {socialLinks.map((s, i) => (
-            <motion.a
-              key={s.label}
-              href={s.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/35 text-zinc-300 hover:text-white transition-all duration-300 text-xs font-medium backdrop-blur-sm shadow-sm"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.1 + i * 0.1, duration: 0.4 }}
-              whileHover={{ x: -4 }}
-            >
-              <span className="w-4 h-4 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
-                {s.icon}
-              </span>
-              <span className="tracking-wide">{s.label}</span>
-            </motion.a>
-          ))}
+          {socialLinks.map((s, i) => {
+            const isEmail = s.label === 'Email'
+            return (
+              <motion.a
+                key={s.label}
+                href={s.href}
+                onClick={isEmail ? handleEmailAction : undefined}
+                target={isEmail ? undefined : '_blank'}
+                rel={isEmail ? undefined : 'noopener noreferrer'}
+                className={`group flex items-center gap-3 w-[138px] px-4 py-2.5 rounded-full border transition-all duration-300 text-xs font-medium backdrop-blur-sm shadow-sm cursor-pointer ${
+                  isEmail && emailCopied
+                    ? 'border-[#EFFF4F] bg-[#EFFF4F]/20 text-[#EFFF4F] shadow-[0_0_18px_rgba(239,255,79,0.35)]'
+                    : 'border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/35 text-zinc-300 hover:text-white'
+                }`}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.1 + i * 0.1, duration: 0.4 }}
+                whileHover={{ x: -4 }}
+                whileTap={{ scale: 0.96 }}
+                title={isEmail ? 'Klik untuk salin email & opsi kirim' : s.label}
+              >
+                <span className="w-4 h-4 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors shrink-0">
+                  {isEmail && emailCopied ? <CheckIcon /> : s.icon}
+                </span>
+                <span className="tracking-wide">
+                  {isEmail && emailCopied ? 'Copied!' : s.label}
+                </span>
+              </motion.a>
+            )
+          })}
         </motion.div>
       </div>
+
+      {/* Floating toast notification when Email is copied */}
+      <AnimatePresence>
+        {emailCopied && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#10131A]/95 border border-[#EFFF4F]/40 shadow-[0_10px_35px_rgba(0,0,0,0.8),0_0_20px_rgba(239,255,79,0.25)] px-4 py-3 rounded-xl backdrop-blur-xl pointer-events-auto"
+          >
+            <div className="w-7 h-7 rounded-full bg-[#EFFF4F]/20 text-[#EFFF4F] flex items-center justify-center shrink-0">
+              <CheckIcon />
+            </div>
+            <div className="flex flex-col pr-1">
+              <span className="font-sans font-semibold text-xs text-white">Email tersalin ke clipboard!</span>
+              <span className="font-mono text-[11px] text-[#EFFF4F]">giyanraditya024@gmail.com</span>
+            </div>
+            <div className="flex items-center gap-1.5 ml-2 border-l border-zinc-800 pl-3">
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=giyanraditya024@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1 rounded bg-[#EFFF4F] hover:bg-white text-[#10131A] font-semibold font-mono text-[10px] tracking-wide transition-colors"
+              >
+                Buka Gmail
+              </a>
+              <a
+                href="#contact"
+                className="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-mono text-[10px] tracking-wide transition-colors"
+              >
+                Form Kontak
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Scroll indicator */}
       <motion.div
@@ -890,6 +990,8 @@ function Projects() {
                   <img
                     src={p.image}
                     alt={p.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-[1.06] transition-all duration-700"
                     style={{ borderRadius: 0 }}
                   />
@@ -1145,7 +1247,7 @@ function Research() {
   )
 }
 
-// ─── Contact Background ──────────────────────────
+// ─── Contact Background (Ringan, hanya render saat terlihat di layar) ──────────────────────────
 function ContactBackground() {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
 
@@ -1155,24 +1257,45 @@ function ContactBackground() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    let width = canvas.width = canvas.clientWidth
-    let height = canvas.height = canvas.clientHeight
+    let width = (canvas.width = canvas.clientWidth)
+    let height = (canvas.height = canvas.clientHeight)
+    let isVisible = false
+    let animationFrameId: number | null = null
 
     // Elements
     const stars: { x: number; y: number; size: number; speed: number }[] = []
-    for (let i = 0; i < (width < 768 ? 30 : 80); i++) {
+    const starCount = width < 768 ? 16 : 35
+    for (let i = 0; i < starCount; i++) {
       stars.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: Math.random() * 2,
-        speed: Math.random() * 0.5 + 0.1
+        size: Math.random() * 1.5 + 0.5,
+        speed: Math.random() * 0.4 + 0.1
       })
     }
 
-    let animationFrameId: number
+    const geminiPoints = [
+      { x: -40, y: -120, name: 'Castor' },
+      { x: 40, y: -100, name: 'Pollux' },
+      { x: -50, y: -50 },
+      { x: 20, y: -40 },
+      { x: -60, y: 30 },
+      { x: 10, y: 40 },
+      { x: -80, y: 110 },
+      { x: -10, y: 120 },
+      { x: -100, y: -30 },
+      { x: 70, y: -20 },
+    ]
+
+    const geminiLines = [
+      [0, 2], [2, 4], [4, 6],
+      [1, 3], [3, 5], [5, 7],
+      [4, 5],
+      [2, 8], [3, 9]
+    ]
 
     const render = () => {
-      if (!canvas) return
+      if (!isVisible) return
 
       if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
         width = canvas.width = canvas.clientWidth
@@ -1184,31 +1307,11 @@ function ContactBackground() {
       // --- Draw Gemini Constellation ---
       const isMobile = width < 768
       const geminiCx = isMobile ? width * 0.5 : width * 0.8
-      const geminiCy = isMobile ? height * 0.5 : height * 0.5
+      const geminiCy = height * 0.5
       const gScale = Math.max(0.5, Math.min(width, height) / 800)
 
-      const geminiPoints = [
-        { x: -40, y: -120, name: 'Castor' },
-        { x: 40, y: -100, name: 'Pollux' },
-        { x: -50, y: -50 },
-        { x: 20, y: -40 },
-        { x: -60, y: 30 },
-        { x: 10, y: 40 },
-        { x: -80, y: 110 },
-        { x: -10, y: 120 },
-        { x: -100, y: -30 },
-        { x: 70, y: -20 },
-      ]
-
-      const geminiLines = [
-        [0, 2], [2, 4], [4, 6],
-        [1, 3], [3, 5], [5, 7],
-        [4, 5],
-        [2, 8], [3, 9]
-      ]
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'
-      ctx.lineWidth = 1.5
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
+      ctx.lineWidth = 1.2
       geminiLines.forEach(([i, j]) => {
         const p1 = geminiPoints[i]
         const p2 = geminiPoints[j]
@@ -1218,24 +1321,28 @@ function ContactBackground() {
         ctx.stroke()
       })
 
-      const pulse = Math.sin(Date.now() * 0.002) * 0.3 + 0.7
+      const pulse = Math.sin(Date.now() * 0.002) * 0.25 + 0.75
       geminiPoints.forEach(p => {
+        const px = geminiCx + p.x * gScale
+        const py = geminiCy + p.y * gScale
+        const r = p.name ? 4.5 * gScale : 2.2 * gScale
+
+        // Outer soft glow for key stars without expensive shadowBlur
+        if (p.name) {
+          ctx.beginPath()
+          ctx.arc(px, py, r * 2.2, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(239, 255, 79, ${pulse * 0.18})`
+          ctx.fill()
+        }
+
         ctx.beginPath()
-        const r = p.name ? 5 * gScale : 2.5 * gScale
-        ctx.arc(geminiCx + p.x * gScale, geminiCy + p.y * gScale, r, 0, Math.PI * 2)
+        ctx.arc(px, py, r, 0, Math.PI * 2)
         ctx.fillStyle = p.name ? `rgba(255, 255, 255, ${pulse})` : 'rgba(255, 255, 255, 0.4)'
         ctx.fill()
-
-        if (p.name) {
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.6)'
-          ctx.shadowBlur = 10
-          ctx.fill()
-          ctx.shadowBlur = 0
-        }
       })
 
-      // Draw Stars
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+      // Draw Stars (ringan & halus)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'
       stars.forEach(star => {
         ctx.beginPath()
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
@@ -1250,7 +1357,20 @@ function ContactBackground() {
       animationFrameId = requestAnimationFrame(render)
     }
 
-    render()
+    // IntersectionObserver: hanya jalankan render saat canvas terlihat
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible
+        isVisible = entry.isIntersecting
+        if (!wasVisible && isVisible) {
+          animationFrameId = requestAnimationFrame(render)
+        } else if (wasVisible && !isVisible && animationFrameId) {
+          cancelAnimationFrame(animationFrameId)
+        }
+      },
+      { threshold: 0.05 }
+    )
+    observer.observe(canvas)
 
     const handleResize = () => {
       if (canvasRef.current) {
@@ -1261,7 +1381,8 @@ function ContactBackground() {
     window.addEventListener('resize', handleResize)
 
     return () => {
-      cancelAnimationFrame(animationFrameId)
+      observer.disconnect()
+      if (animationFrameId) cancelAnimationFrame(animationFrameId)
       window.removeEventListener('resize', handleResize)
     }
   }, [])
@@ -1280,6 +1401,37 @@ function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [contactEmailCopied, setContactEmailCopied] = useState(false)
+
+  const copyContactEmail = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault()
+    const email = 'giyanraditya024@gmail.com'
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(email)
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = email
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+    } catch (_) {
+      const ta = document.createElement('textarea')
+      ta.value = email
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    setContactEmailCopied(true)
+    setTimeout(() => setContactEmailCopied(false), 3500)
+
+    try {
+      window.location.href = `mailto:${email}`
+    } catch (_) {}
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -1337,8 +1489,42 @@ function Contact() {
             </p>
 
             <div className="flex flex-col gap-5 md:gap-6">
+              {/* Email row dengan copy & buka Gmail */}
+              <div className="flex flex-col gap-1.5 md:gap-2 group">
+                <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 justify-center md:justify-start">
+                  <span className="text-[#EFFF4F] text-xs">✉</span>
+                  EMAIL
+                  {contactEmailCopied && (
+                    <span className="text-[#EFFF4F] text-[10px] font-mono normal-case tracking-normal px-2 py-0.5 rounded bg-[#EFFF4F]/15 border border-[#EFFF4F]/30 ml-2 flex items-center gap-1">
+                      ✓ Tersalin ke clipboard!
+                    </span>
+                  )}
+                </span>
+                <div className="flex items-center gap-2.5 flex-wrap justify-center md:justify-start">
+                  <button
+                    type="button"
+                    onClick={copyContactEmail}
+                    title="Klik untuk salin email"
+                    className="font-sans text-sm md:text-base text-zinc-200 hover:text-[#EFFF4F] transition-colors duration-300 break-all md:break-normal cursor-pointer flex items-center gap-2 group/btn text-left"
+                  >
+                    <span>giyanraditya024@gmail.com</span>
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded border border-zinc-700/60 bg-white/5 text-zinc-400 group-hover/btn:border-[#EFFF4F]/50 group-hover/btn:text-[#EFFF4F] transition-all">
+                      {contactEmailCopied ? 'Tersalin ✓' : 'Salin'}
+                    </span>
+                  </button>
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=giyanraditya024@gmail.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-mono px-2.5 py-0.5 rounded border border-[#EFFF4F]/40 bg-[#EFFF4F]/10 text-[#EFFF4F] hover:bg-[#EFFF4F] hover:text-[#10131A] transition-all"
+                  >
+                    Buka Gmail ↗
+                  </a>
+                </div>
+              </div>
+
+              {/* Tautan lainnya */}
               {[
-                { k: 'Email', v: 'giyanraditya024@gmail.com', href: 'mailto:giyanraditya024@gmail.com', icon: '✉' },
                 { k: 'LinkedIn', v: 'linkedin.com/in/giyan-radhietya', href: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/', icon: '◆' },
                 { k: 'Instagram', v: '@giyanradh', href: 'https://www.instagram.com/giyanradh/', icon: '◉' },
                 { k: 'Location', v: 'Bandung, Indonesia', href: null, icon: '◎' },
@@ -1465,12 +1651,13 @@ function Footer() {
             { icon: <GithubIcon />, url: 'https://github.com/GiyanRa', label: 'GitHub' },
             { icon: <LinkedInIcon />, url: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/', label: 'LinkedIn' },
             { icon: <InstagramIcon />, url: 'https://www.instagram.com/giyanradh/', label: 'Instagram' },
+            { icon: <EmailIcon />, url: 'mailto:giyanraditya024@gmail.com', label: 'Email' },
           ].map(s => (
             <motion.a
               key={s.label}
               href={s.url}
-              target="_blank"
-              rel="noreferrer"
+              target={s.label === 'Email' ? undefined : '_blank'}
+              rel={s.label === 'Email' ? undefined : 'noreferrer'}
               title={s.label}
               className="text-zinc-500 hover:text-[#EFFF4F] transition-colors duration-300"
               whileHover={{ scale: 1.2, y: -2 }}

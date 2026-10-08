@@ -845,7 +845,7 @@ function Hero() {
 
   const socialLinks = [
     { label: 'GitHub', href: 'https://github.com/GiyanRa', icon: <GithubIcon /> },
-    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/', icon: <LinkedInIcon /> },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/giyan-radhietya-akmal-32a394220/', icon: <LinkedInIcon /> },
     { label: 'Instagram', href: 'https://www.instagram.com/giyanradh/', icon: <InstagramIcon /> },
     { label: 'Email', href: 'mailto:giyanraditya024@gmail.com', icon: <EmailIcon /> },
   ]
@@ -1980,7 +1980,7 @@ function Contact() {
 
               {/* Tautan lainnya */}
               {[
-                { k: 'LinkedIn', v: 'linkedin.com/in/giyan-radhietya', href: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/', icon: '◆' },
+                { k: 'LinkedIn', v: 'linkedin.com/in/giyan-radhietya-akmal-32a394220', href: 'https://www.linkedin.com/in/giyan-radhietya-akmal-32a394220/', icon: '◆' },
                 { k: 'Instagram', v: '@giyanradh', href: 'https://www.instagram.com/giyanradh/', icon: '◉' },
                 { k: 'Location', v: 'Bandung, Indonesia', href: null, icon: '◎' },
               ].map(({ k, v, href, icon }) => (
@@ -2104,7 +2104,7 @@ function Footer() {
         <div className="flex gap-5 md:gap-6 justify-center items-center">
           {[
             { icon: <GithubIcon />, url: 'https://github.com/GiyanRa', label: 'GitHub' },
-            { icon: <LinkedInIcon />, url: 'https://www.linkedin.com/in/giyan-radhietya-32a394220/', label: 'LinkedIn' },
+            { icon: <LinkedInIcon />, url: 'https://www.linkedin.com/in/giyan-radhietya-akmal-32a394220/', label: 'LinkedIn' },
             { icon: <InstagramIcon />, url: 'https://www.instagram.com/giyanradh/', label: 'Instagram' },
             { icon: <EmailIcon />, url: 'mailto:giyanraditya024@gmail.com', label: 'Email' },
           ].map(s => (

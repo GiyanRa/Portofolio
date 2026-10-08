@@ -108,6 +108,15 @@ const CERTIFICATES: CertificateData[] = [
     desc: 'Certificate of completion for the Office Operational Management learning materials, covering topics such as operational standardization (SOP, Work Instruction, Checklist), facility management, asset management, budgeting, and monitoring & evaluation. Completed on October 6, 2026 (No: 142/MCS/X/2026).',
     image: '/certificates/micasa-manajemen-operasional-2026.jpg',
   },
+  {
+    id: '03',
+    title: 'Belajar JQuery Dasar',
+    issuer: 'CodePolitan',
+    year: '2026',
+    desc: 'Certificate of completion for the Belajar JQuery Dasar online course on the CodePolitan platform, covering foundational jQuery concepts. Completed on October 8, 2026.',
+    image: '/certificates/codepolitan-jquery-dasar-2026.jpg',
+    link: 'https://codepolitan.com/c/J9TDGQ6',
+  },
 ]
 
 // ─── Animation Variants ──────────────────────────

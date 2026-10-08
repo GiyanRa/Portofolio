@@ -110,10 +110,10 @@ const CERTIFICATES: CertificateData[] = [
   },
   {
     id: '03',
-    title: 'Belajar JQuery Dasar',
+    title: 'jQuery Fundamentals',
     issuer: 'CodePolitan',
     year: '2026',
-    desc: 'Certificate of completion for the Belajar JQuery Dasar online course on the CodePolitan platform, covering foundational jQuery concepts. Completed on October 8, 2026.',
+    desc: 'Certificate of completion for the jQuery Fundamentals online course on the CodePolitan platform, covering core jQuery concepts including DOM manipulation, event handling, and AJAX. Completed on October 8, 2026.',
     image: '/certificates/codepolitan-jquery-dasar-2026.jpg',
     link: 'https://codepolitan.com/c/J9TDGQ6',
   },

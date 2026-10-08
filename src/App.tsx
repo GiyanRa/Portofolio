@@ -5,7 +5,7 @@ import bookstoreImg from './imports/image-18.webp'
 import journeyscapeImg from './imports/image-15.webp'
 import indotexImg from './imports/image-16.png'
 
-const NAV_LINKS = ['about', 'skills', 'projects', 'experience', 'research', 'contact']
+const NAV_LINKS = ['about', 'skills', 'projects', 'experience', 'research', 'certificates', 'contact']
 
 const SKILLS = [
   { category: 'Languages', emoji: '⌨', items: ['TypeScript', 'Python', 'Java', 'Lua', 'SQL', 'PHP'] },
@@ -76,6 +76,37 @@ const EXPERIENCE = [
     role: 'Internship — Software Developer', company: 'PT Indotex Lasindo Jaya', period: '3 Months',
     desc: 'Developed a production recording system as a desktop application to digitize and streamline factory floor data entry and reporting.',
     tech: ['Java', 'Application Development', 'Database'],
+  },
+]
+
+interface CertificateData {
+  id: string;
+  title: string;
+  issuer: string;
+  year: string;
+  desc: string;
+  image: string;
+  link?: string;
+}
+
+// Taruh file gambar sertifikat di folder /public/certificates/
+const CERTIFICATES: CertificateData[] = [
+  {
+    id: '01',
+    title: 'Pre-reader Express Course',
+    issuer: 'Code.org',
+    year: '2021',
+    desc: 'Certificate of Completion for the Pre-reader Express Course, covering foundational computer science concepts.',
+    image: '/certificates/codeorg-prereader-2021.jpg',
+    link: 'https://studio.code.org',
+  },
+  {
+    id: '02',
+    title: 'Office Operational Management',
+    issuer: 'PT Micasa Edukasi Indonesia',
+    year: '2026',
+    desc: 'Certificate of completion for the Office Operational Management learning materials, covering topics such as operational standardization (SOP, Work Instruction, Checklist), facility management, asset management, budgeting, and monitoring & evaluation. Completed on October 6, 2026 (No: 142/MCS/X/2026).',
+    image: '/certificates/micasa-manajemen-operasional-2026.jpg',
   },
 ]
 
@@ -916,8 +947,8 @@ function Hero() {
                     aria-label={s.label}
                     title={isEmail ? 'Klik untuk salin email' : s.label}
                     className={`w-9 h-9 flex items-center justify-center rounded-full border backdrop-blur-sm transition-all shadow-sm ${isEmail && emailCopied
-                        ? 'border-[#EFFF4F] bg-[#EFFF4F]/25 text-[#EFFF4F]'
-                        : 'border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/30 text-zinc-300 hover:text-white'
+                      ? 'border-[#EFFF4F] bg-[#EFFF4F]/25 text-[#EFFF4F]'
+                      : 'border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/30 text-zinc-300 hover:text-white'
                       }`}
                   >
                     <span className="w-4 h-4 flex items-center justify-center text-zinc-400">
@@ -947,8 +978,8 @@ function Hero() {
                 target={isEmail ? undefined : '_blank'}
                 rel={isEmail ? undefined : 'noopener noreferrer'}
                 className={`group flex items-center gap-3 w-[138px] px-4 py-2.5 rounded-full border transition-all duration-300 text-xs font-medium backdrop-blur-sm shadow-sm cursor-pointer ${isEmail && emailCopied
-                    ? 'border-[#EFFF4F] bg-[#EFFF4F]/20 text-[#EFFF4F] shadow-[0_0_18px_rgba(239,255,79,0.35)]'
-                    : 'border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/35 text-zinc-300 hover:text-white'
+                  ? 'border-[#EFFF4F] bg-[#EFFF4F]/20 text-[#EFFF4F] shadow-[0_0_18px_rgba(239,255,79,0.35)]'
+                  : 'border-white/15 bg-white/5 hover:bg-white/15 hover:border-white/35 text-zinc-300 hover:text-white'
                   }`}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -1480,6 +1511,197 @@ function Research() {
   )
 }
 
+// ─── Certificates ──────────────────────────
+function CertImage({ cert, className, fallbackClassName }: { cert: CertificateData; className: string; fallbackClassName: string }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) {
+    return (
+      <div className={`flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-zinc-900 via-[#141821] to-zinc-900 text-center p-6 ${fallbackClassName}`}>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EFFF4F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.6">
+          <circle cx="12" cy="8" r="6" />
+          <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+        </svg>
+        <span className="font-serif text-white/80 font-bold">{cert.title}</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">{cert.issuer} · {cert.year}</span>
+      </div>
+    )
+  }
+  return (
+    <img
+      src={cert.image}
+      alt={`${cert.title} — ${cert.issuer}`}
+      decoding="async"
+      onError={() => setFailed(true)}
+      className={className}
+    />
+  )
+}
+
+function Certificates() {
+  const [active, setActive] = useState<CertificateData | null>(null)
+
+  useEffect(() => {
+    if (!active) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActive(null) }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [active])
+
+  return (
+    <section id="certificates" className="bg-[#0d1016] py-20 md:py-32 border-t border-zinc-800/30 overflow-hidden">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12">
+        <motion.div
+          className="flex items-center gap-4 mb-4 justify-center md:justify-start"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+        >
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#EFFF4F]/60">Achievements</span>
+          <div className="h-px w-12 bg-[#EFFF4F]/20" />
+        </motion.div>
+
+        <motion.div
+          className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12 md:mb-16 text-center md:text-left"
+          initial="hidden" whileInView="visible" viewport={viewportConfig} variants={revealVariants}
+        >
+          <h2 className="font-serif text-4xl md:text-5xl text-white font-bold tracking-tight">Certificates</h2>
+          <span className="font-mono text-[10px] md:text-xs text-zinc-600 tracking-widest uppercase">{CERTIFICATES.length} certificate{CERTIFICATES.length > 1 ? 's' : ''}</span>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {CERTIFICATES.map((c, i) => (
+            <motion.article
+              key={c.id}
+              className="group relative p-[1px] rounded-sm overflow-hidden"
+              initial="hidden" whileInView="visible" viewport={viewportConfig}
+              variants={{ hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] } } }}
+            >
+              {/* Animated border */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#EFFF4F]/30 via-zinc-700/20 to-[#EFFF4F]/10 opacity-40 group-hover:opacity-100 transition-opacity duration-700" />
+
+              <div className="relative bg-[#10131A] rounded-sm h-full flex flex-col">
+                {/* Info (text only — image shown via View) */}
+                <div className="p-6 md:p-8 flex flex-col flex-1 text-center sm:text-left">
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#10131A] bg-[#EFFF4F] px-2.5 py-1 rounded-sm">
+                      {c.year}
+                    </span>
+                    <span className="font-mono text-3xl font-bold text-zinc-800">{c.id}</span>
+                  </div>
+                  <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-[#EFFF4F]/70 mb-2">{c.issuer}</span>
+                  <h3 className="font-serif text-xl md:text-2xl text-white font-bold mb-3 group-hover:text-[#EFFF4F] transition-colors duration-500">
+                    {c.title}
+                  </h3>
+                  <p className="font-sans text-zinc-400 text-sm leading-relaxed font-light mb-6 flex-1">{c.desc}</p>
+
+                  <motion.button
+                    type="button"
+                    id={`cert-view-${c.id}`}
+                    onClick={() => setActive(c)}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="group/btn self-center sm:self-start inline-flex items-center gap-3 font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] px-5 py-3 border border-[#EFFF4F]/40 text-[#EFFF4F] hover:bg-[#EFFF4F] hover:text-[#10131A] hover:shadow-[0_0_30px_rgba(239,255,79,0.25)] transition-all duration-300 rounded-sm"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    View
+                    <span className="transition-transform duration-300 group-hover/btn:translate-x-1">→</span>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.article>
+          ))}
+        </div>
+      </div>
+
+      {/* Lightbox modal */}
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            key="cert-modal"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 bg-black/85 backdrop-blur-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => setActive(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={active.title}
+          >
+            <motion.div
+              className="relative w-full max-w-5xl flex flex-col"
+              initial={{ opacity: 0, scale: 0.92, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <div className="flex flex-col">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#EFFF4F]/70">{active.issuer} · {active.year}</span>
+                  <h3 className="font-serif text-lg md:text-2xl text-white font-bold">{active.title}</h3>
+                </div>
+                <button
+                  type="button"
+                  id="cert-modal-close"
+                  onClick={() => setActive(null)}
+                  className="shrink-0 w-10 h-10 flex items-center justify-center border border-zinc-700 text-zinc-300 hover:border-[#EFFF4F] hover:text-[#EFFF4F] hover:rotate-90 transition-all duration-300 rounded-sm"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Image */}
+              <div
+                className="relative bg-zinc-900 rounded-sm overflow-hidden border border-[#EFFF4F]/20"
+                style={{ boxShadow: '0 0 80px rgba(239,255,79,0.08)' }}
+              >
+                <CertImage
+                  cert={active}
+                  className="block w-full max-h-[75vh] object-contain"
+                  fallbackClassName="w-full aspect-[4/3] max-h-[75vh]"
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
+                <span className="font-mono text-[10px] text-zinc-500">Press ESC or click outside to close</span>
+                <div className="flex gap-3">
+                  <a
+                    href={active.image}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-[10px] md:text-xs uppercase tracking-[0.15em] px-4 py-2 border border-zinc-700 text-zinc-300 hover:border-[#EFFF4F] hover:text-[#EFFF4F] transition-all rounded-sm"
+                  >
+                    Open Full ↗
+                  </a>
+                  {active.link && (
+                    <a
+                      href={active.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-mono text-[10px] md:text-xs uppercase tracking-[0.15em] px-4 py-2 bg-[#EFFF4F] text-[#10131A] hover:shadow-[0_0_30px_rgba(239,255,79,0.3)] transition-all rounded-sm font-bold"
+                    >
+                      Visit Issuer ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  )
+}
+
 // ─── Contact Background (Ringan, hanya render saat terlihat di layar) ──────────────────────────
 function ContactBackground() {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
@@ -1916,6 +2138,7 @@ export default function App() {
       <Projects />
       <Experience />
       <Research />
+      <Certificates />
       <Contact />
       <Footer />
     </div>

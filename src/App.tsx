@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, Variants, useInView } from 'framer-motion'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import profilePhoto from './imports/foto.png'
 import bookstoreImg from './imports/image-18.webp'
 import journeyscapeImg from './imports/image-15.webp'
@@ -2152,6 +2153,7 @@ export default function App() {
       <Contact />
       <Footer />
       <Analytics />
+      <SpeedInsights />
     </div>
   )
 }
